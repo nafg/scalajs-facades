@@ -17,7 +17,6 @@ lazy val reactSelectPlus =
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
       basicSettings("react-select-plus", "1.0.0-rc.10.patch1"),
-      name := "scalajs-facade-reactselectplus_1.0.0-rc.10.patch1",
       version := "0.1.0"
     )
 
