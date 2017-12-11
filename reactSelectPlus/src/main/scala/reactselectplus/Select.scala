@@ -49,12 +49,15 @@ object SelectOption {
   }
 
   implicit class ExtensionMethods[A](self: SelectOption[A]) {
-    def fold[T](groupF: Seq[SelectOption[A]] => T, dataF: (String, A) => T): T =
-      if (self.hasOwnProperty("options")) groupF(self.asInstanceOf[GroupSelectOption[A]].options)
+    def foldRaw[T](groupF: GroupSelectOption[A] => T, dataF: DataSelectOption[A] => T): T =
+      if (self.hasOwnProperty("options")) groupF(self.asInstanceOf[GroupSelectOption[A]])
       else {
         val data = self.asInstanceOf[DataSelectOption[A]]
-        dataF(data.value, data.data)
+        dataF(data)
       }
+
+    def fold[T](groupF: Seq[SelectOption[A]] => T, dataF: (String, A) => T): T =
+      foldRaw(gso => groupF(gso.options), dso => dataF(dso.value, dso.data))
   }
 }
 
