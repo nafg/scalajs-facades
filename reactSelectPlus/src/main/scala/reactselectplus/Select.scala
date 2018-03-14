@@ -33,6 +33,14 @@ abstract class DataSelectOption[A] extends SelectOption[A] {
 @ScalaJSDefined
 abstract class GroupSelectOption[A] extends SelectOption[A] with OptionsWrapper[A]
 
+@js.native
+trait IsOptionUniqueArg[A] extends js.Object {
+  val option: DataSelectOption[A]
+  val options: js.Array[DataSelectOption[A]]
+  val labelKey: String
+  val valueKey: String
+}
+
 object SelectOption {
   def apply[A](value0: String, data0: A): DataSelectOption[A] = apply(value0, data0, data0.toString)
 
@@ -119,6 +127,7 @@ object Select {
                 (valueRenderer: Option[DataSelectOption[A] => VdomElement] = None,
                  optionRenderer: Option[SelectOption[A] => VdomElement] = None,
                  filterOption: Option[(DataSelectOption[A], String) => Boolean] = None,
+                 isOptionUnique: Option[IsOptionUniqueArg[A] => Boolean] = None,
                  clearable: Boolean = false,
                  placeholder: Option[String] = None,
                  onInputChange: Option[String => Callback] = None,
