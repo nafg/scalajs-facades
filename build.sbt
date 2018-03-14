@@ -1,8 +1,8 @@
 scalaVersion in ThisBuild := "2.12.4"
-organization in ThisBuild := "io.github.nafg"
+organization in ThisBuild := "io.github.nafg.scalajs-facades"
 
 def basicSettings(npmName: String, npmVersion: String) = Seq(
-  name := "scalajs-facade-" + npmName.filter(_ != '-') + "_" + npmVersion,
+  name := npmName + "_" + npmVersion,
   npmDependencies in Compile += npmName -> npmVersion,
   libraryDependencies ++= Seq(
     "com.github.japgolly.scalajs-react" %%% "extra" % "1.1.1",
