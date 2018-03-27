@@ -1,4 +1,4 @@
-scalaVersion in ThisBuild := "2.12.4"
+scalaVersion in ThisBuild := "2.12.5"
 organization in ThisBuild := "io.github.nafg.scalajs-facades"
 
 def basicSettings(npmName: String, npmVersion: String) = Seq(
@@ -8,7 +8,7 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
     "com.github.japgolly.scalajs-react" %%% "extra" % "1.1.1",
     "com.payalabs" %%% "scalajs-react-bridge" % "0.4.0"
   ),
-  addCompilerPlugin("io.tryp" % "splain" % "0.2.7" cross CrossVersion.patch)
+  addCompilerPlugin("io.tryp" % "splain" % "0.2.10" cross CrossVersion.patch)
 )
 
 

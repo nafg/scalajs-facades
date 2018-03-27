@@ -1,1 +1,1 @@
-addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.9.0")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.10.0")
