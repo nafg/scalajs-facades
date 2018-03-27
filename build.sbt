@@ -1,6 +1,8 @@
 scalaVersion in ThisBuild := "2.12.5"
 organization in ThisBuild := "io.github.nafg.scalajs-facades"
 
+publish / skip := true
+
 def basicSettings(npmName: String, npmVersion: String) = Seq(
   name := npmName + "_" + npmVersion,
   npmDependencies in Compile += npmName -> npmVersion,
