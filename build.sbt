@@ -1,5 +1,5 @@
-scalaVersion in ThisBuild := "2.12.5"
-organization in ThisBuild := "io.github.nafg.scalajs-facades"
+ThisBuild / scalaVersion := "2.12.6"
+ThisBuild / organization := "io.github.nafg.scalajs-facades"
 
 publish / skip := true
 
@@ -10,7 +10,8 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
     "com.github.japgolly.scalajs-react" %%% "extra" % "1.2.0",
     "com.payalabs" %%% "scalajs-react-bridge" % "0.6.0"
   ),
-  addCompilerPlugin("io.tryp" % "splain" % "0.2.10" cross CrossVersion.patch)
+  addCompilerPlugin("io.tryp" % "splain" % "0.3.1" cross CrossVersion.patch),
+  scalacOptions += "-P:scalajs:sjsDefinedByDefault"
 )
 
 

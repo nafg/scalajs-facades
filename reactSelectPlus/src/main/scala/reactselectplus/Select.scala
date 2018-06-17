@@ -4,7 +4,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.JSRichGenTraversableOnce
-import scala.scalajs.js.annotation.{JSImport, JSName, ScalaJSDefined}
+import scala.scalajs.js.annotation.{JSImport, JSName}
 
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.{Callback, CallbackTo}
@@ -26,18 +26,15 @@ object ReactSelectPlusFacade extends js.Any {
   val SelectAsyncCreatable: js.Any = js.native
 }
 
-@ScalaJSDefined
 trait SelectOption[+A] extends js.Object {
   val label: String
 }
 
-@ScalaJSDefined
 abstract class DataSelectOption[A] extends SelectOption[A] {
   val value: String
   def data: A
 }
 
-@ScalaJSDefined
 abstract class GroupSelectOption[A] extends SelectOption[A] with OptionsWrapper[A]
 
 @js.native
@@ -76,7 +73,6 @@ object SelectOption {
   }
 }
 
-@ScalaJSDefined
 trait OptionsWrapper[A] extends js.Object {
   val options: js.Array[SelectOption[A]]
 }
