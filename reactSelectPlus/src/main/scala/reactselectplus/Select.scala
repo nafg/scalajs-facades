@@ -4,19 +4,26 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.JSRichGenTraversableOnce
-import scala.scalajs.js.annotation.{JSImport, ScalaJSDefined}
+import scala.scalajs.js.annotation.{JSImport, JSName, ScalaJSDefined}
+
+import japgolly.scalajs.react.vdom.VdomElement
+import japgolly.scalajs.react.{Callback, CallbackTo}
 
 import com.payalabs.scalajs.react.bridge.{JsWriter, ReactBridgeComponent}
-import japgolly.scalajs.react.vdom.VdomElement
-import japgolly.scalajs.react.{Callback, Children, JsComponent}
 
 
-@JSImport("react-select-plus", JSImport.Namespace)
 @js.native
-object ReactSelectPlusFacade extends js.Object {
-  val Async: js.Any = js.native
-  val Creatable: js.Any = js.native
-  val AsyncCreatable: js.Any = js.native
+@JSImport("react-select-plus", JSImport.Namespace)
+object ReactSelectPlusFacade extends js.Any {
+  @JSName(JSImport.Default)
+  val Select: js.Any = js.native
+
+  @JSName("Async")
+  val SelectAsync: js.Any = js.native
+  @JSName("Creatable")
+  val SelectCreatable: js.Any = js.native
+  @JSName("AsyncCreatable")
+  val SelectAsyncCreatable: js.Any = js.native
 }
 
 @ScalaJSDefined
@@ -83,10 +90,41 @@ object AsyncResult {
     })
 }
 
-object Select {
+object Select extends ReactBridgeComponent {
+  override protected lazy val componentValue = ReactSelectPlusFacade.Select
+
+  def apply[A](value: Option[String], options: Seq[SelectOption[A]])
+              (valueRenderer: Option[DataSelectOption[A] => VdomElement] = None,
+               optionRenderer: Option[SelectOption[A] => VdomElement] = None,
+               filterOption: Option[(DataSelectOption[A], String) => Boolean] = None,
+               clearable: Boolean = false,
+               placeholder: Option[String] = None,
+               isLoading: Boolean = false,
+               multi: Boolean = false,
+               onClose: () => Callback,
+               onOpen: () => Callback,
+               onMenuScrollToBottom: () => Callback,
+               onInputChange: String => CallbackTo[String])
+              (onChange: js.UndefOr[DataSelectOption[A]] => Callback): VdomElement = autoNoTagModsNoChildren
+
+  object multi {
+    def apply[A](value: Seq[String], options: Seq[SelectOption[A]])
+                (valueRenderer: Option[DataSelectOption[A] => VdomElement] = None,
+                 optionRenderer: Option[SelectOption[A] => VdomElement] = None,
+                 filterOption: Option[(DataSelectOption[A], String) => Boolean] = None,
+                 clearable: Boolean = false,
+                 placeholder: Option[String] = None,
+                 isLoading: Boolean = false,
+                 multi: Boolean = true,
+                 onClose: () => Callback,
+                 onOpen: () => Callback,
+                 onMenuScrollToBottom: () => Callback,
+                 onInputChange: String => CallbackTo[String])
+                (onChange: js.Array[DataSelectOption[A]] => Callback): VdomElement = autoNoTagModsNoChildren
+  }
+
   object Async extends ReactBridgeComponent {
-    override protected lazy val jsComponent =
-      JsComponent[js.Object, Children.Varargs, Null](ReactSelectPlusFacade.Async)
+    override protected lazy val componentValue = ReactSelectPlusFacade.SelectAsync
 
     def apply[A](value: Option[String], loadOptions: String => Future[AsyncResult[A]])
                 (valueRenderer: Option[DataSelectOption[A] => VdomElement] = None,
@@ -120,8 +158,7 @@ object Select {
   }
 
   object Creatable extends ReactBridgeComponent {
-    override protected lazy val jsComponent =
-      JsComponent[js.Object, Children.Varargs, Null](ReactSelectPlusFacade.Creatable)
+    override protected lazy val componentValue = ReactSelectPlusFacade.SelectCreatable
 
     def apply[A](value: Option[String], options: Seq[SelectOption[A]])
                 (valueRenderer: Option[DataSelectOption[A] => VdomElement] = None,
@@ -137,8 +174,7 @@ object Select {
   }
 
   object AsyncCreatable extends ReactBridgeComponent {
-    override protected lazy val jsComponent =
-      JsComponent[js.Object, Children.Varargs, Null](ReactSelectPlusFacade.AsyncCreatable)
+    override protected lazy val componentValue = ReactSelectPlusFacade.SelectAsyncCreatable
 
     def apply[A](value: Option[String], loadOptions: String => Future[AsyncResult[A]])
                 (valueRenderer: Option[DataSelectOption[A] => VdomElement] = None,

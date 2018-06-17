@@ -18,8 +18,8 @@ lazy val reactSelectPlus =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
-      basicSettings("react-select-plus", "1.0.0-rc.10.patch1"),
-      version := "0.2.0"
+      basicSettings("react-select-plus", "1.2.0"),
+      version := "0.3.0"
     )
 
 lazy val reactInputMask =
