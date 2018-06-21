@@ -97,10 +97,11 @@ object Select extends ReactBridgeComponent {
                placeholder: Option[String] = None,
                isLoading: Boolean = false,
                multi: Boolean = false,
-               onClose: () => Callback,
-               onOpen: () => Callback,
-               onMenuScrollToBottom: () => Callback,
-               onInputChange: String => CallbackTo[String])
+               onClose: Option[() => Callback] = None,
+               onOpen: Option[() => Callback] = None,
+               onMenuScrollToBottom: Option[() => Callback] = None,
+               onInputChange: Option[String => CallbackTo[String]] = None,
+               onSelectResetsInput: Boolean = true)
               (onChange: js.UndefOr[DataSelectOption[A]] => Callback): VdomElement = autoNoTagModsNoChildren
 
   object multi {
@@ -112,10 +113,11 @@ object Select extends ReactBridgeComponent {
                  placeholder: Option[String] = None,
                  isLoading: Boolean = false,
                  multi: Boolean = true,
-                 onClose: () => Callback,
-                 onOpen: () => Callback,
-                 onMenuScrollToBottom: () => Callback,
-                 onInputChange: String => CallbackTo[String])
+                 onClose: Option[() => Callback] = None,
+                 onOpen: Option[() => Callback] = None,
+                 onMenuScrollToBottom: Option[() => Callback] = None,
+                 onInputChange: Option[String => CallbackTo[String]] = None,
+                 onSelectResetsInput: Boolean = true)
                 (onChange: js.Array[DataSelectOption[A]] => Callback): VdomElement = autoNoTagModsNoChildren
   }
 
