@@ -10,7 +10,7 @@ val publishForTag = taskKey[Unit]("Publish artifacts if the project name matches
 
 val publishForTagImpl =
   Def.taskDyn {
-    val P = name.value.split('_').init.mkString
+    val P = name.value.takeWhile(_ != '_')
     val V = version.value
     val tags = s"git tag --points-at".!!.trim.linesIterator.toList
     if (tags.exists(_.split('@') match { case Array(P, V) => true case _ => false }))
@@ -19,7 +19,7 @@ val publishForTagImpl =
       }
     else
       Def.task {
-        ()
+        streams.value.log.info(s"$P@$V not in tags ${tags.mkString("[", ",", "]")}")
       }
   }
 
