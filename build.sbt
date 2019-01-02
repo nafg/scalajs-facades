@@ -36,6 +36,19 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
 )
 
 
+lazy val simpleFacade =
+  project
+    .enablePlugins(ScalaJSBundlerPlugin)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.github.japgolly.scalajs-react" %%% "extra" % "1.3.1",
+        "com.payalabs" %%% "scalajs-react-bridge" % "0.7.0"
+      ),
+      scalacOptions += "-P:scalajs:sjsDefinedByDefault",
+      version := "0.6.0",
+      publishForTag := publishForTagImpl.value
+    )
+
 lazy val reactSelectPlus =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
