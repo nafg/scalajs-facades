@@ -49,6 +49,15 @@ lazy val simpleFacade =
       publishForTag := publishForTagImpl.value
     )
 
+lazy val reactSelect =
+  project
+    .enablePlugins(ScalaJSBundlerPlugin)
+    .dependsOn(simpleFacade)
+    .settings(
+      basicSettings("react-select", "2.1.2"),
+      version := "0.6.0"
+    )
+
 lazy val reactSelectPlus =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
