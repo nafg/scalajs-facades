@@ -30,7 +30,7 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
     "com.github.japgolly.scalajs-react" %%% "extra" % "1.4.0",
     "com.payalabs" %%% "scalajs-react-bridge" % "0.7.0"
   ),
-  addCompilerPlugin("io.tryp" % "splain" % "0.3.5" cross CrossVersion.patch),
+  addCompilerPlugin("io.tryp" % "splain" % "0.4.0" cross CrossVersion.patch),
   scalacOptions += "-P:scalajs:sjsDefinedByDefault",
   publishForTag := publishForTagImpl.value
 )
