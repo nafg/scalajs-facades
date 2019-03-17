@@ -54,7 +54,7 @@ lazy val reactSelect =
     .enablePlugins(ScalaJSBundlerPlugin)
     .dependsOn(simpleFacade)
     .settings(
-      basicSettings("react-select", "2.1.2"),
+      basicSettings("react-select", "2.4.2"),
       version := "0.6.0"
     )
 
