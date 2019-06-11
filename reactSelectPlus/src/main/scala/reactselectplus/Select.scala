@@ -3,7 +3,7 @@ package reactselectplus
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters.JSRichGenTraversableOnce
+import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.annotation.{JSImport, JSName}
 
 import japgolly.scalajs.react.vdom.VdomElement
@@ -69,7 +69,7 @@ object SelectOption {
       }
 
     def fold[T](groupF: Seq[SelectOption[A]] => T, dataF: (String, A) => T): T =
-      foldRaw(gso => groupF(gso.options), dso => dataF(dso.value, dso.data))
+      foldRaw(gso => groupF(gso.options.toSeq), dso => dataF(dso.value, dso.data))
   }
 }
 

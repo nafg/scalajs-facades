@@ -1,5 +1,25 @@
-ThisBuild / scalaVersion := "2.12.10"
+ThisBuild / crossScalaVersions := Seq("2.12.10", "2.13.1")
+ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.last
 ThisBuild / organization := "io.github.nafg.scalajs-facades"
+
+ThisBuild / scalacOptions ++= Seq(
+  "-deprecation",
+  "-feature",
+  "-unchecked",
+  "-explaintypes",
+  "-Xlint:_",
+  "-Ywarn-dead-code",
+  "-Ywarn-extra-implicit",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-unused:_",
+  "-Ywarn-value-discard"
+)
+
+ThisBuild / scalacOptions ++=
+  (if (scalaVersion.value.startsWith("2.12."))
+    List("-language:higherKinds", "-Xfuture", "-Ypartial-unification")
+  else
+    Nil)
 
 publish / skip := true
 
