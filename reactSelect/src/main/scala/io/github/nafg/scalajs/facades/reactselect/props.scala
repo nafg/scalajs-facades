@@ -34,6 +34,7 @@ trait HasInputValue extends js.Object {
 trait CommonProps[A] extends PropTypes {
   val isClearable = of[Boolean]
   val isMulti = of[Boolean]
+  val closeMenuOnSelect = of[Boolean]
   val placeholder = of[String]
   val className, classNamePrefix = of[String]
   val isLoading = of[Boolean]
