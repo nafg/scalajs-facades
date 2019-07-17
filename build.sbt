@@ -55,7 +55,7 @@ lazy val reactSelect =
     .dependsOn(simpleFacade)
     .settings(
       basicSettings("react-select", "2.4.2"),
-      version := "0.6.1"
+      version := "0.6.2"
     )
 
 lazy val reactSelectPlus =
