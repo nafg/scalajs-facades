@@ -73,3 +73,12 @@ lazy val reactInputMask =
       basicSettings("react-input-mask", "2.0.4"),
       version := "0.3.0"
     )
+
+lazy val reactPhoneNumberInput =
+  project
+    .enablePlugins(ScalaJSBundlerPlugin)
+    .dependsOn(simpleFacade)
+    .settings(
+      basicSettings("react-phone-number-input", "2.5.1"),
+      version := "0.1.0"
+    )
