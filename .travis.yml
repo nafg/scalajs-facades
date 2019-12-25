@@ -4,6 +4,6 @@ language: scala
 script: "sbt test"
 deploy:
   provider: script
-  script: "sbt publishForTag"
+  script: "sbt publish"
   on:
     tags: true
