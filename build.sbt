@@ -1,7 +1,7 @@
 import sys.process._
 
 
-ThisBuild / scalaVersion := "2.12.8"
+ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "io.github.nafg.scalajs-facades"
 
 publish / skip := true
