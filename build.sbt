@@ -7,7 +7,7 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
   name := npmName + "_" + npmVersion,
   npmDependencies in Compile += npmName -> npmVersion,
   libraryDependencies ++= Seq(
-    "com.github.japgolly.scalajs-react" %%% "extra" % "1.5.0",
+    "com.github.japgolly.scalajs-react" %%% "extra" % "1.6.0",
     "com.payalabs" %%% "scalajs-react-bridge" % "0.8.1"
   ),
   addCompilerPlugin("io.tryp" % "splain" % "0.5.0" cross CrossVersion.patch),
@@ -20,7 +20,7 @@ lazy val simpleFacade =
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "extra" % "1.5.0",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "1.6.0",
         "com.payalabs" %%% "scalajs-react-bridge" % "0.8.1"
       ),
       scalacOptions += "-P:scalajs:sjsDefinedByDefault"
