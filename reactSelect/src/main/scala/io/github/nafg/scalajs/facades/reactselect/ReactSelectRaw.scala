@@ -1,18 +1,20 @@
 package io.github.nafg.scalajs.facades.reactselect
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation.{JSImport, JSName}
+import scala.scalajs.js.annotation.JSImport
 
 
-@js.native
-@JSImport("react-select", JSImport.Namespace)
-object ReactSelectRaw extends js.Any {
-  @JSName(JSImport.Default)
-  val Select: js.Any = js.native
-  @JSName("Async")
-  val SelectAsync: js.Any = js.native
-  @JSName("Creatable")
-  val SelectCreatable: js.Any = js.native
-  @JSName("AsyncCreatable")
-  val SelectAsyncCreatable: js.Any = js.native
+object ReactSelectRaw {
+  @js.native
+  @JSImport("react-select", JSImport.Default)
+  object Select extends js.Object
+  @js.native
+  @JSImport("react-select/async", JSImport.Default)
+  object SelectAsync extends js.Object
+  @js.native
+  @JSImport("react-select/creatable", JSImport.Default)
+  object SelectCreatable extends js.Object
+  @js.native
+  @JSImport("react-select/async-creatable", JSImport.Default)
+  object SelectAsyncCreatable extends js.Object
 }
