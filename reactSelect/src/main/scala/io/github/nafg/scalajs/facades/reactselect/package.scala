@@ -3,7 +3,7 @@ package io.github.nafg.scalajs.facades
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters.JSRichGenTraversableOnce
+import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.|
 
 import japgolly.scalajs.react.vdom.VdomNode
