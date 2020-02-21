@@ -36,7 +36,7 @@ object SelectionType {
   }
   implicit object Multi extends SelectionType[Seq] {
     override type Js[A] = js.Array[A]
-    override implicit def jsWriter[A: JsWriter]: JsWriter[Seq[A]] = com.payalabs.scalajs.react.bridge.seqWriter[A]
+    override implicit def jsWriter[A: JsWriter]: JsWriter[Seq[A]] = com.payalabs.scalajs.react.bridge.baseSeqWriter[A]
     override def defaultProps[A] = Seq(_.isClearable := true, _.isMulti := true)
     override def toSeq[A](fa: Seq[A]) = fa
     override def fromJs[A](jsa: js.Array[A]) = jsa
