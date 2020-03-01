@@ -1,4 +1,4 @@
-import sbt.Keys.{sourceManaged, target}
+import sbt.Keys._
 import sbt._
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 
@@ -46,6 +46,11 @@ object FacadeGeneratorPlugin extends AutoPlugin {
     autoImport.runYarnInstall := {
       os.proc("yarn", "install")
         .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
+    },
+    Compile / packageSrc / mappings ++= {
+      val base = (Compile / sourceManaged).value
+      val files = (Compile / managedSources).value
+      files.map(f => (f, f.relativeTo(base).get.getPath))
     }
   )
 }
