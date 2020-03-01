@@ -16,5 +16,7 @@ object PropTypes {
 trait PropTypes {
   protected def writeJsOpaque[A] = JsWriter[A](_.asInstanceOf[js.Any])
 
-  def of[A](implicit name: sourcecode.Name, jsWriter: JsWriter[A]) = new PropTypes.Prop[A](name.value)
+  def apply[A](name: String)(implicit jsWriter: JsWriter[A]) = new PropTypes.Prop[A](name)
+
+  def of[A](implicit name: sourcecode.Name, jsWriter: JsWriter[A]) = apply[A](name.value)(jsWriter)
 }
