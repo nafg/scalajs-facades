@@ -5,18 +5,18 @@ import scala.scalajs.js.UndefOr
 import scala.scalajs.js.annotation.{JSImport, JSName}
 
 import japgolly.scalajs.react.Callback
-import io.github.nafg.simplefacade.{Facade, Factory, PropTypes}
+import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
 
 
-object ReactPhoneNumberInput {
+object ReactPhoneNumberInput extends FacadeModule {
   @js.native
   @JSImport("react-phone-number-input", JSImport.Namespace)
-  object raw extends js.Any {
+  private object module extends js.Any {
     @JSName(JSImport.Default)
-    def PhoneInput: js.Any = js.native
+    def PhoneInput: js.Object = js.native
   }
 
-  val facade = Facade(raw.PhoneInput)
+  override def raw = module.PhoneInput
 
   @js.native
   trait GetInputClassNameParam extends js.Object {
@@ -36,5 +36,5 @@ object ReactPhoneNumberInput {
     val getInputClassName = of[GetInputClassNameParam => String]
   }
 
-  def apply(settings: Factory.Setting[Props]*): Factory[Props] = facade.factory(new Props)(settings: _*)
+  override def mkProps = new Props
 }
