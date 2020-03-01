@@ -24,8 +24,8 @@ ThisBuild / scalacOptions ++=
 publish / skip := true
 
 def basicSettings(npmName: String, npmVersion: String) = Seq(
-  name := npmName + "_" + npmVersion,
-  npmDependencies in Compile += npmName -> npmVersion,
+  name := npmName.stripPrefix("@") + "_" + npmVersion,
+  Compile / npmDependencies += npmName -> npmVersion,
   libraryDependencies ++= Seq(
     "com.github.japgolly.scalajs-react" %%% "extra" % "1.6.0",
     "com.payalabs" %%% "scalajs-react-bridge" % "0.8.2"
@@ -67,3 +67,20 @@ lazy val reactPhoneNumberInput =
     .enablePlugins(ScalaJSBundlerPlugin)
     .dependsOn(simpleFacade)
     .settings(basicSettings("react-phone-number-input", "2.5.1"))
+
+
+lazy val materialUiCore =
+  project
+    .enablePlugins(FacadeGeneratorPlugin)
+    .dependsOn(simpleFacade)
+    .settings(
+      basicSettings("@material-ui/core", "4.9.4"),
+      reactDocGenRepoUrl := "https://github.com/mui-org/material-ui.git",
+      reactDocGenRepoRef := "v4.9.4",
+      Compile / sourceGenerators +=
+        generateReactDocGenFacades("packages/material-ui", "@material-ui/core", "mui"),
+      Compile / sourceGenerators +=
+        generateReactDocGenFacades("packages/material-ui-lab", "@material-ui/lab", "mui.lab"),
+      Compile / sourceGenerators +=
+        generateReactDocGenFacades("packages/material-ui-styles", "@material-ui/styles", "mui.styles")
+    )
