@@ -41,29 +41,64 @@ object FacadeGenerator {
           else
             (s"$indent/**" +: str.linesIterator.map(" * " + _).toSeq :+ " */").mkString("\n" + indent)
 
+        val maybeChildrenProp = propInfos.find(_.name == "children")
+
+        val requiredNonChildrenProps = propInfos.filter(i => i.required && !maybeChildrenProp.contains(i))
+
+        val applyMethod = requiredNonChildrenProps match {
+          case Seq() => ""
+          case infos =>
+            val paramsStr = infos.map(i => i.ident + ": " + i.propTypeCode + ",\n            ").mkString
+            val settingsExpr =
+              infos
+                .map(i => s"_.${i.ident} := ${i.ident}")
+                .mkString("Seq[Factory.Setting[Props]](", ", ", ") ++ settings")
+            if (maybeChildrenProp.isDefined)
+              s"def apply(${paramsStr}settings: Factory.Setting[Props]*): ApplyChildren =\n" +
+                s"    new ApplyChildren($settingsExpr)"
+            else
+              s"def apply(${paramsStr}settings: Factory.Setting[Props]*): Factory[Props] =\n" +
+                s"    mkFactory($settingsExpr)"
+        }
+
+        val (moduleTrait, moduleTraitParam) = maybeChildrenProp match {
+          case Some(i) if i.propType == PropType.Node => "FacadeModule.NodeChildren" -> None
+          case Some(i)                                => "FacadeModule.ChildrenOf" -> Some(i.propTypeCode)
+          case _                                      => "FacadeModule" -> None
+        }
+
+        val moduleParent =
+          moduleTrait + (if (applyMethod.nonEmpty) "" else ".Simple") + moduleTraitParam.fold("")("[" + _ + "]")
+
+        val (propTypesTrait, propTypesTraitParam) =
+          maybeChildrenProp
+            .map(i => "PropTypes.WithChildren" -> Some(i.propTypeCode))
+            .getOrElse("PropTypes" -> None)
+
         val propDefs =
           propInfos.map(p => s"${comment(p.description, "    ")}\n    val ${p.ident} = of[${p.propTypeCode}]")
-
         val code =
           s"""|package $scalaPackage
               |
               |${imports.map("import " + _).mkString("\n")}
               |import scala.scalajs.js
               |import scala.scalajs.js.annotation.JSImport
-              |import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
+              |import io.github.nafg.simplefacade.{FacadeModule, ${if (applyMethod.isEmpty) "" else "Factory, "}PropTypes}
               |
               |
               |${comment(obj("description").str, "")}
-              |object $displayName extends FacadeModule {
+              |object $displayName extends $moduleParent {
               |  @JSImport("$jsPackage/$displayName", JSImport.Default)
               |  @js.native
               |  object raw extends js.Object
               |
               |  override def mkProps = new Props
               |
-              |  class Props extends PropTypes {
+              |  class Props extends $propTypesTrait${propTypesTraitParam.fold("")("[" + _ + "]")} {
               |${propDefs.mkString("\n")}
               |  }
+              |
+              |  $applyMethod
               |}
               |""".stripMargin
 

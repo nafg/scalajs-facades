@@ -8,7 +8,7 @@ import japgolly.scalajs.react.Callback
 import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
 
 
-object ReactPhoneNumberInput extends FacadeModule {
+object ReactPhoneNumberInput extends FacadeModule.Simple {
   @js.native
   @JSImport("react-phone-number-input", JSImport.Namespace)
   private object module extends js.Any {

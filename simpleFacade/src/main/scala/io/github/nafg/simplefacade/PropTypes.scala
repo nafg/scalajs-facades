@@ -17,6 +17,10 @@ object PropTypes {
   class Prop[A](val name: String)(implicit jsWriter: JsWriter[A]) {
     def :=(value: A): Setting = new Setting(name, jsWriter.toJs(value))
   }
+
+  trait WithChildren[C] extends PropTypes {
+    def children: PropTypes.Prop[C]
+  }
 }
 
 trait PropTypes {
