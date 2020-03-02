@@ -78,9 +78,9 @@ lazy val materialUiCore =
       reactDocGenRepoUrl := "https://github.com/mui-org/material-ui.git",
       reactDocGenRepoRef := "v4.9.4",
       Compile / sourceGenerators +=
-        generateReactDocGenFacades("packages/material-ui", "@material-ui/core", "mui"),
+        generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui"),
       Compile / sourceGenerators +=
-        generateReactDocGenFacades("packages/material-ui-lab", "@material-ui/lab", "mui.lab"),
+        generateReactDocGenFacades("packages/material-ui-styles/src", "@material-ui/styles", "mui.styles"),
       Compile / sourceGenerators +=
-        generateReactDocGenFacades("packages/material-ui-styles", "@material-ui/styles", "mui.styles")
+        generateReactDocGenFacades("packages/material-ui-lab/src", "@material-ui/lab", "mui.lab")
     )
