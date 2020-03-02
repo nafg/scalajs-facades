@@ -9,10 +9,13 @@ import com.payalabs.scalajs.react.bridge.JsWriter
 
 
 object PropTypes {
-  type Setting = (String, js.Any)
+  class Setting(val key: String, val value: js.Any)
+  object Setting {
+    implicit class fromBooleanProp(prop: Prop[Boolean]) extends Setting(prop.name, true)
+  }
 
-  class Prop[A](name: String)(implicit jsWriter: JsWriter[A]) {
-    def :=(value: A): Setting = name -> jsWriter.toJs(value)
+  class Prop[A](val name: String)(implicit jsWriter: JsWriter[A]) {
+    def :=(value: A): Setting = new Setting(name, jsWriter.toJs(value))
   }
 }
 

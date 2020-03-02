@@ -16,7 +16,7 @@ object Factory {
 case class Factory[A](propTypes: A, component: Facade.JsComponentType, values: Seq[PropTypes.Setting] = Vector.empty) {
   def apply(pairs: Factory.Setting[A]*): Factory[A] = copy(values = values ++ pairs.map(_.apply(propTypes)))
 
-  private def toObject: js.Object = js.Dictionary(values: _*).asInstanceOf[js.Object]
+  private def toObject: js.Object = js.Dictionary(values.map(v => (v.key, v.value)): _*).asInstanceOf[js.Object]
 
   def render: Js.UnmountedWithRawType[js.Object, Null, Js.RawMounted[js.Object, Null]] =
     component.apply(toObject)()
