@@ -31,7 +31,7 @@ object FacadeGenerator {
     val allFiles =
       for (item <- docJson.obj.values; obj = item.obj; if Set("props", "displayName").forall(obj.contains)) yield {
         val displayName = obj("displayName").str
-        val propInfos = PropInfo.readAll(obj("props").obj).sortBy(_.name)
+        val propInfos = PropInfo.readAll(obj("props").obj - "key").sortBy(_.name)
         val imports = propInfos.flatMap(_.imports).distinct.sorted
 
         val outputFile = outputDir / (displayName + ".scala")

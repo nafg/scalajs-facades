@@ -2,6 +2,9 @@ package io.github.nafg.simplefacade
 
 import scala.scalajs.js
 
+import japgolly.scalajs.react.Key
+import io.github.nafg.simplefacade.Implicits.unionWriter
+
 import com.payalabs.scalajs.react.bridge.JsWriter
 
 
@@ -19,4 +22,6 @@ trait PropTypes {
   def apply[A](name: String)(implicit jsWriter: JsWriter[A]) = new PropTypes.Prop[A](name)
 
   def of[A](implicit name: sourcecode.Name, jsWriter: JsWriter[A]) = apply[A](name.value)(jsWriter)
+
+  val key = of[Key]
 }
