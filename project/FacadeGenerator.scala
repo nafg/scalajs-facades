@@ -1,7 +1,5 @@
 import java.io.File
 
-import os.Path
-
 
 object FacadeGenerator {
   os.proc("yarn", "global", "add", "react-docgen")
@@ -9,11 +7,18 @@ object FacadeGenerator {
 
   val yarnDir = os.proc("yarn", "global", "bin").call().out.text().trim
 
-  def run(base: Path,
-          repoDir: Path,
+  private def comment(str: String, indent: String) =
+    if (str.trim.isEmpty) ""
+    else
+      (s"$indent/**" +: str.linesIterator.map(" * " + _).toSeq :+ " */").mkString("\n" + indent)
+
+  def run(base: os.Path,
+          repoDir: os.Path,
           subDir: String,
           jsPackage: String,
-          scalaSubPackage: String): Seq[File] = {
+          scalaSubPackage: String,
+          propTransformer: PropInfo => PropInfo = identity,
+          componentTransformer: ComponentInfo => ComponentInfo = identity): Seq[File] = {
     val scalaPackage = "io.github.nafg.scalajs.facades." + scalaSubPackage
     val outputDir = base / scalaPackage.split('.').toList
 
@@ -28,22 +33,20 @@ object FacadeGenerator {
 
     val docJson = ujson.read(os.read(docGenOutputFile))
 
+    val componentInfos = docJson.obj.values.collect {
+      case value if Set("props", "displayName").forall(value.obj.contains) =>
+        val info0 = ComponentInfo.read(value.obj)
+        componentTransformer(info0.copy(props = info0.props.map(propTransformer)))
+    }
+
     val allFiles =
-      for (item <- docJson.obj.values; obj = item.obj; if Set("props", "displayName").forall(obj.contains)) yield {
-        val displayName = obj("displayName").str
-        val propInfos = PropInfo.readAll(obj("props").obj - "key").sortBy(_.name)
-        val imports = propInfos.flatMap(_.imports).distinct.sorted
+      for (info <- componentInfos) yield {
+        val imports = info.props.flatMap(_.imports).distinct.sorted
+        val outputFile = outputDir / (info.displayName + ".scala")
 
-        val outputFile = outputDir / (displayName + ".scala")
+        val maybeChildrenProp = info.props.find(_.name == "children")
 
-        def comment(str: String, indent: String) =
-          if (str.trim.isEmpty) ""
-          else
-            (s"$indent/**" +: str.linesIterator.map(" * " + _).toSeq :+ " */").mkString("\n" + indent)
-
-        val maybeChildrenProp = propInfos.find(_.name == "children")
-
-        val requiredNonChildrenProps = propInfos.filter(i => i.required && !maybeChildrenProp.contains(i))
+        val requiredNonChildrenProps = info.props.filter(i => i.required && !maybeChildrenProp.contains(i))
 
         val applyMethod = requiredNonChildrenProps match {
           case Seq() => ""
@@ -76,7 +79,8 @@ object FacadeGenerator {
             .getOrElse("PropTypes" -> None)
 
         val propDefs =
-          propInfos.map(p => s"${comment(p.description, "    ")}\n    val ${p.ident} = of[${p.propTypeCode}]")
+          info.props.map(p => s"${comment(p.description, "    ")}\n    val ${p.ident} = of[${p.propTypeCode}]")
+
         val code =
           s"""|package $scalaPackage
               |
@@ -86,9 +90,9 @@ object FacadeGenerator {
               |import io.github.nafg.simplefacade.{FacadeModule, ${if (applyMethod.isEmpty) "" else "Factory, "}PropTypes}
               |
               |
-              |${comment(obj("description").str, "")}
-              |object $displayName extends $moduleParent {
-              |  @JSImport("$jsPackage/$displayName", JSImport.Default)
+              |${comment(info.description, "")}
+              |object ${info.displayName} extends $moduleParent {
+              |  @JSImport("$jsPackage/${info.displayName}", JSImport.Default)
               |  @js.native
               |  object raw extends js.Object
               |

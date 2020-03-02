@@ -9,6 +9,8 @@ object FacadeGeneratorPlugin extends AutoPlugin {
     val reactDocGenRepoRef = settingKey[String]("Git ref to run react-docgen in")
     val reactDocGenDir = taskKey[os.Path]("Directory to run react-docgen inside of")
     val runYarnInstall = taskKey[Unit]("Run yarn install in reactDocGenDir")
+    val propInfoTransformer = settingKey[PropInfo => PropInfo]("Function to post-process PropInfos")
+    val componentInfoTransformer = settingKey[ComponentInfo => ComponentInfo]("Function to post-process ComponentInfos")
 
     def generateReactDocGenFacades(subDir: String, jsPackage: String, scalaSubPackage: String) = Def.task {
       runYarnInstall.value
@@ -18,7 +20,9 @@ object FacadeGeneratorPlugin extends AutoPlugin {
         repoDir = reactDocGenDir.value,
         subDir = subDir,
         jsPackage = jsPackage,
-        scalaSubPackage = scalaSubPackage
+        scalaSubPackage = scalaSubPackage,
+        propTransformer = propInfoTransformer.value,
+        componentTransformer = componentInfoTransformer.value
       )
     }
   }
@@ -47,6 +51,8 @@ object FacadeGeneratorPlugin extends AutoPlugin {
       os.proc("yarn", "install")
         .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
     },
+    autoImport.propInfoTransformer := identity,
+    autoImport.componentInfoTransformer := identity,
     Compile / packageSrc / mappings ++= {
       val base = (Compile / sourceManaged).value
       val files = (Compile / managedSources).value
