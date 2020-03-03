@@ -1,9 +1,11 @@
 package io.github.nafg.simplefacade
 
+import scala.language.implicitConversions
 import scala.scalajs.js
 
 import japgolly.scalajs.react.React
-import japgolly.scalajs.react.vdom.VdomNode
+import japgolly.scalajs.react.vdom.all.EmptyVdom
+import japgolly.scalajs.react.vdom.{VdomElement, VdomNode}
 
 
 trait FacadeModule {
@@ -35,8 +37,14 @@ object FacadeModule {
   trait NodeChildren extends FacadeModule {
     type Props <: PropTypes.WithChildren[VdomNode]
 
+    def childrenToNode(children: Seq[VdomNode]): VdomNode = children match {
+      case Seq()    => EmptyVdom
+      case Seq(one) => one
+      case many     => React.Fragment(many: _*)
+    }
+
     class ApplyChildren(settings: Seq[Factory.Setting[Props]]) {
-      def apply(children: VdomNode*): Factory[Props] = mkFactory(settings)(_.children := React.Fragment(children: _*))
+      def apply(children: VdomNode*): Factory[Props] = mkFactory(settings)(_.children := childrenToNode(children))
     }
   }
   object NodeChildren {
