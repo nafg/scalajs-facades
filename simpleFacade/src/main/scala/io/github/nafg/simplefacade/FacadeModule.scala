@@ -46,6 +46,9 @@ object FacadeModule {
     class ApplyChildren(settings: Seq[Factory.Setting[Props]]) {
       def apply(children: VdomNode*): Factory[Props] = mkFactory(settings)(_.children := childrenToNode(children))
     }
+    object ApplyChildren {
+      implicit def toVdomElement(applyChildren: ApplyChildren): VdomElement = applyChildren()
+    }
   }
   object NodeChildren {
     trait Simple extends NodeChildren {
