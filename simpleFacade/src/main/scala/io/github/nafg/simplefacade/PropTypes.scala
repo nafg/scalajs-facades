@@ -1,5 +1,6 @@
 package io.github.nafg.simplefacade
 
+import scala.language.dynamics
 import scala.scalajs.js
 
 import japgolly.scalajs.react.Key
@@ -23,12 +24,13 @@ object PropTypes {
   }
 }
 
-trait PropTypes {
+trait PropTypes extends Dynamic {
   protected def writeJsOpaque[A] = JsWriter[A](_.asInstanceOf[js.Any])
 
-  def apply[A](name: String)(implicit jsWriter: JsWriter[A]) = new PropTypes.Prop[A](name)
+  def applyDynamic[A](name: String)(value: A)(implicit jsWriter: JsWriter[A]): PropTypes.Setting =
+    new PropTypes.Setting(name, jsWriter.toJs(value))
 
-  def of[A](implicit name: sourcecode.Name, jsWriter: JsWriter[A]) = apply[A](name.value)(jsWriter)
+  def of[A](implicit name: sourcecode.Name, jsWriter: JsWriter[A]) = new PropTypes.Prop[A](name.value)
 
   val key = of[Key]
 }
