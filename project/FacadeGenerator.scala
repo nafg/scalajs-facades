@@ -17,7 +17,7 @@ object FacadeGenerator {
           subDir: String,
           jsPackage: String,
           scalaSubPackage: String,
-          propTransformer: PropInfo => PropInfo = identity,
+          propTransformer: (ComponentInfo, PropInfo) => PropInfo = (_, p) => p,
           componentTransformer: ComponentInfo => ComponentInfo = identity): Seq[File] = {
     val scalaPackage = "io.github.nafg.scalajs.facades." + scalaSubPackage
     val outputDir = base / scalaPackage.split('.').toList
@@ -38,13 +38,13 @@ object FacadeGenerator {
     val componentInfos = docJson.obj.values.collect {
       case value if Set("props", "displayName").forall(value.obj.contains) =>
         val info0 = ComponentInfo.read(value.obj)
-        componentTransformer(info0.copy(props = info0.props.map(propTransformer)))
+        componentTransformer(info0.copy(props = info0.props.map(propTransformer(info0, _))))
     }
 
     val allFiles =
       for (info <- componentInfos) yield {
         val imports = info.props.flatMap(_.imports).distinct.sorted
-        val outputFile = outputDir / (info.displayName + ".scala")
+        val outputFile = outputDir / (info.name + ".scala")
 
         val maybeChildrenProp = info.props.find(_.name == "children")
 
@@ -93,8 +93,8 @@ object FacadeGenerator {
               |
               |
               |${comment(info.description, "")}
-              |object ${info.displayName} extends $moduleParent {
-              |  @JSImport("$jsPackage/${info.displayName}", JSImport.Default)
+              |object ${info.name} extends $moduleParent {
+              |  @JSImport("$jsPackage/${info.name}", JSImport.Default)
               |  @js.native
               |  object raw extends js.Object
               |

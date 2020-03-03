@@ -52,7 +52,7 @@ object PropType {
       case String         => Set.empty[String] -> "String"
       case ArrayOf(param) =>
         val (paramImports, paramCode) = loop(param)
-        (paramImports + "scala.scalajs.js") -> s"js.Array[$paramCode]"
+        (paramImports) -> s"Seq[$paramCode]"
       case Union(types)   =>
         val (paramsImports, paramsCodes) = types.map(loop).unzip
         (paramsImports.flatten.toSet ++

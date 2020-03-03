@@ -78,8 +78,40 @@ lazy val materialUiCore =
       reactDocGenRepoUrl := "https://github.com/mui-org/material-ui.git",
       reactDocGenRepoRef := "v4.9.4",
       propInfoTransformer := {
-        case p @ PropInfo("classes", _, true, _) => p.copy(required = false)
-        case p                                   => p
+        case (_, p @ PropInfo("classes", _, _, true, _, _, _))                                        =>
+          p.copy(required = false)
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" |
+                                                                   "count" |
+                                                                   "rowsPerPage", _, _, _, _, _, _))  =>
+          p.copy(propTypeCode = "Int", imports = Set())
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _, _, _)) =>
+          p.copy(
+            propTypeCode = "(ReactEvent, Int) => Callback",
+            imports = p.imports ++ Set("japgolly.scalajs.react.Callback", "japgolly.scalajs.react.ReactEvent")
+          )
+        case (ComponentInfo("TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _, _)) =>
+          p.copy(
+            propTypeCode = "ReactEventFromInput => Callback",
+            imports = p.imports ++ Set("japgolly.scalajs.react.Callback", "japgolly.scalajs.react.ReactEventFromInput")
+          )
+        case (_, p)                                                                                   =>
+          p
+      },
+      componentInfoTransformer := { component =>
+        val withStyleProp =
+          if (component.props.exists(_.name == "style"))
+            component
+          else
+            component.copy(props = component.props :+ PropInfo(
+              name = "style",
+              ident = "style",
+              description = "",
+              required = false,
+              propType = PropType.Object,
+              propTypeCode = "js.Object",
+              imports = Set()
+            ))
+        withStyleProp.copy(props = withStyleProp.props.filterNot(_.description.trim == "@ignore"))
       },
       Compile / sourceGenerators +=
         generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui"),
