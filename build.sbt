@@ -1,3 +1,6 @@
+import sbtdynver.GitDirtySuffix
+
+
 ThisBuild / crossScalaVersions := Seq("2.12.10", "2.13.1")
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.last
 ThisBuild / organization := "io.github.nafg.scalajs-facades"
@@ -20,6 +23,9 @@ ThisBuild / scalacOptions ++=
     List("-language:higherKinds", "-Xfuture", "-Ypartial-unification")
   else
     Nil)
+
+ThisBuild / dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix(""))))
+ThisBuild / dynverSonatypeSnapshots := true
 
 publish / skip := true
 
