@@ -23,7 +23,7 @@ import scala.scalajs.js.annotation.JSImport
 import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
 
 
-object Badge extends FacadeModule {
+object Badge extends FacadeModule.NodeChildren.Simple {
   @JSImport("@material-ui/core/Badge", JSImport.Default) @js.native object raw extends js.Object
 
   override def mkProps = new Props
@@ -39,10 +39,8 @@ object Badge extends FacadeModule {
 }
 
 // in some render method
-Badge(
-  _.badgeContent := "1",
-  _.color := "secondary",
-  _.children := Icon(_.children :=  "mail")
+Badge( _.badgeContent := "1", _.color := "secondary", _.dynamicProp(72))(
+  Icon(_.children :=  "mail")
 )
 
 ```
