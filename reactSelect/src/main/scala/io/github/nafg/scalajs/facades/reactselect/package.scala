@@ -12,8 +12,6 @@ import com.payalabs.scalajs.react.bridge.JsWriter
 
 
 package object reactselect {
-  class OptGroup[A](val label: String, val options: js.Array[A]) extends js.Object
-
   type Opt[A] = A | OptGroup[A]
 
   def OptGroup[A](label: String)(options: Seq[A]): Opt[A] =
