@@ -24,7 +24,9 @@ object FacadeGenerator {
 
     os.makeDir.all(outputDir)
 
-    val docGenOutputFile = os.temp()
+    val docGenOutputFile = os.temp(suffix = ".json")
+
+    println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
 
     val log = base / "react-docgen.log"
 
