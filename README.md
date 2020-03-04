@@ -46,7 +46,7 @@ object Badge extends FacadeModule.NodeChildren.Simple {
 
   override def mkProps = new Props
 
-  class Props extends PropTypes {
+  class Props extends PropTypes.WithChildren[VdomNode] {
     val anchorOrigin = of[js.Object]
     val badgeContent = of[VdomNode]
     val className = of[String]
