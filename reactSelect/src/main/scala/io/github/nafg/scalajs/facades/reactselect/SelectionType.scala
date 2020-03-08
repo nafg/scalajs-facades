@@ -1,7 +1,7 @@
 package io.github.nafg.scalajs.facades.reactselect
 
-import scala.language.higherKinds
 import scala.scalajs.js
+import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.UndefOr
 
 import io.github.nafg.simplefacade.Factory
@@ -36,9 +36,13 @@ object SelectionType {
   }
   implicit object Multi extends SelectionType[Seq] {
     override type Js[A] = js.Array[A]
-    override implicit def jsWriter[A: JsWriter]: JsWriter[Seq[A]] = com.payalabs.scalajs.react.bridge.seqWriter[A]
+    override implicit def jsWriter[A: JsWriter]: JsWriter[Seq[A]] = {
+      val elementWriter = implicitly[JsWriter[A]]
+      JsWriter(_.map(elementWriter.toJs).toJSArray)
+    }
+
     override def defaultProps[A] = Seq(_.isClearable := true, _.isMulti := true)
     override def toSeq[A](fa: Seq[A]) = fa
-    override def fromJs[A](jsa: js.Array[A]) = jsa
+    override def fromJs[A](jsa: js.Array[A]) = jsa.toSeq
   }
 }

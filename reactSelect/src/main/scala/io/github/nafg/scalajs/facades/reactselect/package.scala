@@ -3,7 +3,7 @@ package io.github.nafg.scalajs.facades
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters.JSRichGenTraversableOnce
+import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.|
 
 import japgolly.scalajs.react.vdom.VdomNode
@@ -12,8 +12,6 @@ import com.payalabs.scalajs.react.bridge.JsWriter
 
 
 package object reactselect {
-  class OptGroup[A](val label: String, val options: js.Array[A]) extends js.Object
-
   type Opt[A] = A | OptGroup[A]
 
   def OptGroup[A](label: String)(options: Seq[A]): Opt[A] =
