@@ -43,6 +43,6 @@ object SelectionType {
 
     override def defaultProps[A] = Seq(_.isClearable := true, _.isMulti := true)
     override def toSeq[A](fa: Seq[A]) = fa
-    override def fromJs[A](jsa: js.Array[A]) = jsa.toSeq
+    override def fromJs[A](jsa: js.Array[A]) = if(jsa == null) Nil else jsa.toSeq
   }
 }
