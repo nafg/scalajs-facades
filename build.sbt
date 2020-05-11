@@ -34,7 +34,7 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
   description := s"Facade for $npmName version $npmVersion",
   Compile / npmDependencies += npmName -> npmVersion,
   libraryDependencies ++= Seq(
-    "com.github.japgolly.scalajs-react" %%% "extra" % "1.6.0",
+    "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
     "com.payalabs" %%% "scalajs-react-bridge" % "0.8.2"
   ),
   addCompilerPlugin("io.tryp" % "splain" % "0.5.5" cross CrossVersion.patch),
@@ -48,7 +48,7 @@ lazy val simpleFacade =
     .settings(
       description := "Library for react component facades that are simple to write and simple to use",
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "extra" % "1.6.0",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
         "com.payalabs" %%% "scalajs-react-bridge" % "0.8.2"
       ),
       scalacOptions += "-P:scalajs:sjsDefinedByDefault"
