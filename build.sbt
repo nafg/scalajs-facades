@@ -30,7 +30,10 @@ ThisBuild / dynverSonatypeSnapshots := true
 publish / skip := true
 
 def basicSettings(npmName: String, npmVersion: String) = Seq(
-  name := npmName.stripPrefix("@") + "_" + npmVersion,
+  name := npmName.stripPrefix("@") + "_" + (npmVersion match {
+    case VersionNumber(Seq(n, _, _), _, _) => n
+    case s                                 => s
+  }),
   description := s"Facade for $npmName version $npmVersion",
   Compile / npmDependencies += npmName -> npmVersion,
   libraryDependencies ++= Seq(
