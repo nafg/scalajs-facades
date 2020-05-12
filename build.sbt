@@ -60,11 +60,6 @@ lazy val reactSelect =
     .dependsOn(simpleFacade)
     .settings(basicSettings("react-select", "3.0.8"))
 
-lazy val reactSelectPlus =
-  project
-    .enablePlugins(ScalaJSBundlerPlugin)
-    .settings(basicSettings("react-select-plus", "1.2.0"))
-
 lazy val reactInputMask =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
