@@ -1,7 +1,6 @@
 package io.github.nafg.scalajs.facades.reactselect
 
 import scala.concurrent.Future
-import scala.language.higherKinds
 
 import io.github.nafg.simplefacade.{Facade, Factory}
 

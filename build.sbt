@@ -34,8 +34,7 @@ def basicSettings(npmName: String, npmVersion: String) = Seq(
   description := s"Facade for $npmName version $npmVersion",
   Compile / npmDependencies += npmName -> npmVersion,
   libraryDependencies ++= Seq(
-    "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
-    "com.payalabs" %%% "scalajs-react-bridge" % "0.8.2"
+    "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0"
   ),
   addCompilerPlugin("io.tryp" % "splain" % "0.5.6" cross CrossVersion.patch),
   scalacOptions += "-P:scalajs:sjsDefinedByDefault"
@@ -49,9 +48,8 @@ lazy val simpleFacade =
       description := "Library for react component facades that are simple to write and simple to use",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
-        "com.payalabs" %%% "scalajs-react-bridge" % "0.8.2"
-      ),
-      scalacOptions += "-P:scalajs:sjsDefinedByDefault"
+        "me.shadaj" %%% "slinky-readwrite" % "0.6.5"
+      )
     )
 
 lazy val reactSelect =
@@ -91,12 +89,24 @@ lazy val materialUiCore =
         case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _, _, _)) =>
           p.copy(
             propTypeCode = "(ReactEvent, Int) => Callback",
-            imports = p.imports ++ Set("japgolly.scalajs.react.Callback", "japgolly.scalajs.react.ReactEvent")
+            imports =
+              p.imports ++
+                Set(
+                  "japgolly.scalajs.react.Callback",
+                  "japgolly.scalajs.react.ReactEvent",
+                  "io.github.nafg.simplefacade.Implicits.callbackToWriter"
+                )
           )
         case (ComponentInfo("TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _, _)) =>
           p.copy(
             propTypeCode = "ReactEventFromInput => Callback",
-            imports = p.imports ++ Set("japgolly.scalajs.react.Callback", "japgolly.scalajs.react.ReactEventFromInput")
+            imports =
+              p.imports ++
+                Set(
+                  "japgolly.scalajs.react.Callback",
+                  "japgolly.scalajs.react.ReactEventFromInput",
+                  "io.github.nafg.simplefacade.Implicits.callbackToWriter"
+                )
           )
         case (_, p)                                                                                   =>
           p

@@ -1,17 +1,16 @@
 package io.github.nafg.scalajs.facades.reactselect
 
 import scala.concurrent.Future
-import scala.language.higherKinds
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.js
 import scala.scalajs.js.|
 
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.{Callback, ReactEventFromHtml}
+import io.github.nafg.scalajs.facades.reactselect.SelectionType.{reader, writer}
+import io.github.nafg.simplefacade.Implicits.{callbackToWriter, vdomNodeReader, vdomNodeWriter}
 import io.github.nafg.simplefacade.PropTypes
 
-import com.payalabs.scalajs.react.bridge.JsWriter
-
+import slinky.readwrite.{Reader, Writer}
 
 @js.native
 trait HasData[A] extends js.Object {
@@ -32,6 +31,9 @@ trait HasInputValue extends js.Object {
 }
 
 trait CommonProps[A] extends PropTypes {
+  protected implicit val readA: Reader[A] = opaqueReader[A]
+  protected implicit val writeA: Writer[A] = opaqueWriter[A]
+
   val isClearable = of[Boolean]
   val isMulti = of[Boolean]
   val closeMenuOnSelect = of[Boolean]
@@ -39,8 +41,8 @@ trait CommonProps[A] extends PropTypes {
   val className, classNamePrefix = of[String]
   val isLoading = of[Boolean]
   val noOptionsMessage = of[HasInputValue => Option[String]]
-  protected val getOptionLabel0 = new PropTypes.Prop[js.Any => String]("getOptionLabel")
-  protected val getOptionValue0 = new PropTypes.Prop[js.Any => String]("getOptionValue")
+  protected val _getOptionLabel = new PropTypes.Prop[A => String]("getOptionLabel")
+  protected val _getOptionValue = new PropTypes.Prop[A => String]("getOptionValue")
   val formatGroupLabel = of[OptGroup[A] => VdomNode]
   val formatOptionLabel = of[A => VdomNode]
   val filterOption = of[(FilterParam[A], String) => Boolean]
@@ -49,52 +51,39 @@ trait CommonProps[A] extends PropTypes {
   val onMenuClose = of[() => Callback]
   val onMenuScrollToBottom = of[ReactEventFromHtml => Callback]
 
-  def getOptionLabel(f: A => String): PropTypes.Setting = getOptionLabel0 := (x => f(x.asInstanceOf[A]))
-  def getOptionValue(f: A => String): PropTypes.Setting = getOptionValue0 := (x => f(x.asInstanceOf[A]))
+  def getOptionLabel(f: A => String) = _getOptionLabel := f
+  def getOptionValue(f: A => String) = _getOptionValue := f
 }
 
 trait CreatableProps[A, F[_]] extends CommonProps[A] {
-  private implicit val writeA: JsWriter[A] = writeJsOpaque[A]
-
-  val selectionType: SelectionType[F]
-
+  implicit val selectionType: SelectionType[F]
   val onCreateOption = of[String => Callback]
-  val isValidNewOption = of[(String, selectionType.Js[A], js.Array[Opt[A]]) => Boolean]
+  val isValidNewOption = of[(String, F[A], Seq[Opt[A]]) => Boolean]
   val getNewOptionData = of[(String, VdomNode) => A]
 
-  protected def foldNew[R](isExisting: A => R, isNew: js.Dynamic => R): js.Any => R = { x =>
-    val raw = x.asInstanceOf[js.Dynamic]
+  protected def foldNew[R](isExisting: A => R, isNew: js.Dynamic => js.Dynamic): A => R = { a =>
+    val raw = a.asInstanceOf[js.Dynamic]
     if (!js.isUndefined(raw.__isNew__))
-      isNew(raw)
+      isNew(raw).asInstanceOf[R]
     else
-      isExisting(x.asInstanceOf[A])
+      isExisting(a)
   }
 
-  override def getOptionLabel(f: A => String) = getOptionLabel0 := foldNew(f, _.label.asInstanceOf[String])
-  override def getOptionValue(f: A => String) = getOptionValue0 := foldNew(f, _.value.asInstanceOf[String])
+  override def getOptionLabel(f: A => String) = super.getOptionLabel(foldNew(f, _.label))
+  override def getOptionValue(f: A => String) = super.getOptionLabel(foldNew(f, _.value))
 }
 
 
 class SelectionProps[A, F[_]](implicit val selectionType: SelectionType[F]) extends CommonProps[A] {
-  private implicit val writeA: JsWriter[A] = writeJsOpaque[A]
-
-  import selectionType.jsWriter
-
-
   val value = of[F[A]]
-  private val onChange = of[selectionType.Js[A] => Callback]
-  def onChange(f: F[A] => Callback): PropTypes.Setting = onChange := (f compose selectionType.fromJs)
+  val onChange = of[F[A] => Callback]
 }
 
 trait SyncOptionsProps[A] extends CommonProps[A] {
-  private implicit val writeA: JsWriter[Opt[A]] = writeJsOpaque[Opt[A]]
-
   val options = of[Seq[Opt[A]]]
 }
 
 trait AsyncOptionsProps[A] extends CommonProps[A] {
-  private implicit val writeA: JsWriter[Opt[A]] = writeJsOpaque[Opt[A]]
-
-  val loadOptions = of[js.UndefOr[String] => Future[Seq[Opt[A]]]]
+  val loadOptions = of[Option[String] => Future[Seq[Opt[A]]]]
   val defaultOptions = of[Boolean | Seq[Opt[A]]]
 }
