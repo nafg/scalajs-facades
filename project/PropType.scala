@@ -40,7 +40,9 @@ object PropType {
     def loop(propType: PropType): (Set[String], String) = propType match {
       case Any            => Set.empty[String] -> "js.Any"
       case Bool           => Set.empty[String] -> "Boolean"
-      case Element        => Set("japgolly.scalajs.react.vdom.VdomElement") -> "VdomElement"
+      case Element        =>
+        Set("japgolly.scalajs.react.vdom.VdomElement", "io.github.nafg.simplefacade.Implicits.vdomElementWriter") ->
+          "VdomElement"
       case ElementType    =>
         Set("io.github.nafg.simplefacade.Implicits.elementTypeWriter") -> "japgolly.scalajs.react.raw.React.ElementType"
       case Func           => Set.empty[String] -> "(js.Any => js.Any)"
@@ -52,12 +54,11 @@ object PropType {
       case String         => Set.empty[String] -> "String"
       case ArrayOf(param) =>
         val (paramImports, paramCode) = loop(param)
-        (paramImports) -> s"Seq[$paramCode]"
+        paramImports -> s"Seq[$paramCode]"
       case Union(types)   =>
         val (paramsImports, paramsCodes) = types.map(loop).unzip
         (paramsImports.flatten.toSet ++
-          Set("scala.scalajs.js.|", "io.github.nafg.simplefacade.Implicits.unionWriter")) ->
-          paramsCodes.mkString("(", " | ", ")")
+          Set("scala.scalajs.js.|")) -> paramsCodes.mkString("(", " | ", ")")
     }
 
     def unwrap(s: String) =

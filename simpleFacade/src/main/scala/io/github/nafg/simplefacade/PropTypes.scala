@@ -4,9 +4,8 @@ import scala.language.dynamics
 import scala.scalajs.js
 
 import japgolly.scalajs.react.Key
-import io.github.nafg.simplefacade.Implicits.unionWriter
 
-import com.payalabs.scalajs.react.bridge.JsWriter
+import slinky.readwrite.{Reader, Writer}
 
 
 object PropTypes {
@@ -15,8 +14,8 @@ object PropTypes {
     implicit class fromBooleanProp(prop: Prop[Boolean]) extends Setting(prop.name, true)
   }
 
-  class Prop[A](val name: String)(implicit jsWriter: JsWriter[A]) {
-    def :=(value: A): Setting = new Setting(name, jsWriter.toJs(value))
+  class Prop[A](val name: String)(implicit writer: Writer[A]) {
+    def :=(value: A): Setting = new Setting(name, writer.write(value))
   }
 
   trait WithChildren[C] extends PropTypes {
@@ -25,12 +24,13 @@ object PropTypes {
 }
 
 trait PropTypes extends Dynamic {
-  protected def writeJsOpaque[A] = JsWriter[A](_.asInstanceOf[js.Any])
+  protected def opaqueWriter[A]: Writer[A] = _.asInstanceOf[js.Object]
+  protected def opaqueReader[A]: Reader[A] = _.asInstanceOf[A]
 
-  def applyDynamic[A](name: String)(value: A)(implicit jsWriter: JsWriter[A]): PropTypes.Setting =
-    new PropTypes.Setting(name, jsWriter.toJs(value))
+  def applyDynamic[A](name: String)(value: A)(implicit writer: Writer[A]): PropTypes.Setting =
+    new PropTypes.Setting(name, writer.write(value))
 
-  def of[A](implicit name: sourcecode.Name, jsWriter: JsWriter[A]) = new PropTypes.Prop[A](name.value)
+  def of[A: Writer](implicit name: sourcecode.Name) = new PropTypes.Prop[A](name.value)
 
   val key = of[Key]
 }

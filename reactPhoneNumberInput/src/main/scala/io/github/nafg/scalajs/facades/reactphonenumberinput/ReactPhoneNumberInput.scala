@@ -5,6 +5,7 @@ import scala.scalajs.js.UndefOr
 import scala.scalajs.js.annotation.{JSImport, JSName}
 
 import japgolly.scalajs.react.Callback
+import io.github.nafg.simplefacade.Implicits.callbackToWriter
 import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
 
 
@@ -26,7 +27,7 @@ object ReactPhoneNumberInput extends FacadeModule.Simple {
 
   class Props extends PropTypes {
     val value = of[String]
-    val onChange = of[js.UndefOr[String] => Callback]
+    val onChange = of[Option[String] => Callback]
     val autoComplete = of[String]
     val displayInitialValueAsLocalNumber = of[Boolean]
     val country = of[String]

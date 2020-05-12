@@ -6,13 +6,13 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.|
 
-import japgolly.scalajs.react.vdom.VdomNode
-
-import com.payalabs.scalajs.react.bridge.JsWriter
+import slinky.readwrite.{Reader, Writer}
 
 
 package object reactselect {
   type Opt[A] = A | OptGroup[A]
+  implicit def readOptA[A]: Reader[Opt[A]] = _.asInstanceOf[Opt[A]]
+  implicit def writeOptA[A]: Writer[Opt[A]] = _.asInstanceOf[js.Object]
 
   def OptGroup[A](label: String)(options: Seq[A]): Opt[A] =
     new OptGroup[A](label, options.toJSArray)
@@ -31,9 +31,5 @@ package object reactselect {
   object AsyncResults {
     implicit def simple[A](fut: Future[Seq[A]]): AsyncResults[A] =
       new AsyncResults[A](fut.asInstanceOf[Future[Seq[Opt[A]]]])
-  }
-
-  implicit object vdomNodeWriter extends JsWriter[VdomNode] {
-    override def toJs(value: VdomNode) = value.rawNode.asInstanceOf[js.Any]
   }
 }
