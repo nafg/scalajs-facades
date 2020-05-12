@@ -3,19 +3,22 @@ package reactinputmask
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
-import com.payalabs.scalajs.react.bridge.{ReactBridgeComponent, WithPropsNoChildren}
-import japgolly.scalajs.react._
+import io.github.nafg.simplefacade.{FacadeModule, Factory, PropTypes}
 
 
-@JSImport("react-input-mask", JSImport.Default)
-@js.native
-object ReactInputMaskFacade extends js.Object
+object ReactInputMask extends FacadeModule {
+  @JSImport("react-input-mask", JSImport.Default)
+  @js.native
+  object raw extends js.Object
 
-object ReactInputMask extends ReactBridgeComponent {
-  override protected lazy val jsComponent = JsComponent[js.Object, Children.Varargs, Null](ReactInputMaskFacade)
+  class Props extends PropTypes {
+    val mask = of[String]
+    val maskChar = of[String]
+    val formatChars = of[Map[String, String]]
+    val alwaysShowMask = of[Boolean]
+  }
 
-  def apply(mask: String,
-            maskChar: Option[String] = None,
-            formatChars: Option[js.Dictionary[String]] = None,
-            alwaysShowMask: Boolean = false): WithPropsNoChildren = autoNoChildren
+  override def mkProps = new Props
+
+  def apply(mask: String): Factory[Props] = mkFactory(Seq(_.mask := mask))
 }
