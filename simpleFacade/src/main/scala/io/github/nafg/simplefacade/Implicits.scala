@@ -17,4 +17,5 @@ object Implicits {
   implicit def vdomElementWriter: Writer[VdomElement] = _.rawNode.asInstanceOf[js.Object]
   implicit def elementTypeWriter: Writer[ElementType] = _.asInstanceOf[js.Object]
   implicit def callbackToWriter[A](implicit A: Writer[A]): Writer[CallbackTo[A]] = _.map(A.write).runNow()
+  implicit def undefinedWriter: Writer[js.UndefOr[Nothing]] = _ => js.undefined.asInstanceOf[js.Object]
 }

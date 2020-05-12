@@ -1,41 +1,45 @@
 package io.github.nafg.scalajs.facades.reactphonenumberinput
 
 import scala.scalajs.js
-import scala.scalajs.js.UndefOr
-import scala.scalajs.js.annotation.{JSImport, JSName}
+import scala.scalajs.js.annotation.JSImport
 
 import japgolly.scalajs.react.Callback
-import io.github.nafg.simplefacade.Implicits.callbackToWriter
+import japgolly.scalajs.react.raw.React
+import io.github.nafg.simplefacade.Implicits.{callbackToWriter, elementTypeWriter}
 import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
 
 
 object ReactPhoneNumberInput extends FacadeModule.Simple {
+  @JSImport("react-phone-number-input", JSImport.Default)
   @js.native
-  @JSImport("react-phone-number-input", JSImport.Namespace)
-  private object module extends js.Any {
-    @JSName(JSImport.Default)
-    def PhoneInput: js.Object = js.native
-  }
+  object raw extends js.Object
 
-  override def raw = module.PhoneInput
-
-  @js.native
-  trait GetInputClassNameParam extends js.Object {
-    def invalid: UndefOr[Boolean]
-    def disabled: UndefOr[Boolean]
-  }
-
-  class Props extends PropTypes {
+  trait CommonProps extends PropTypes {
     val value = of[String]
     val onChange = of[Option[String] => Callback]
+    val defaultCountry = of[String]
+    val inputComponent = of[React.ElementType]
+  }
+
+  class Props extends CommonProps {
     val autoComplete = of[String]
     val displayInitialValueAsLocalNumber = of[Boolean]
-    val country = of[String]
     val countries = of[Seq[String]]
-    val showCountrySelect = of[Boolean]
-    val inputClassName = of[String]
-    val getInputClassName = of[GetInputClassNameParam => String]
+    val numberInputProps = of[js.Object]
   }
 
   override def mkProps = new Props
+
+  object input extends FacadeModule.Simple {
+    @JSImport("react-phone-number-input/input", JSImport.Default)
+    @js.native
+    object raw extends js.Object
+
+    class Props extends CommonProps {
+      val useNationalFormatForDefaultCountryValue = of[Boolean]
+      val country = of[String]
+    }
+
+    override def mkProps = new Props
+  }
 }
