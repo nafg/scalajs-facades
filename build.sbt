@@ -59,7 +59,7 @@ lazy val reactSelect =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
     .dependsOn(simpleFacade)
-    .settings(basicSettings("react-select", "3.0.8"))
+    .settings(basicSettings("react-select", "3.1.0"))
 
 lazy val reactInputMask =
   project
@@ -71,17 +71,19 @@ lazy val reactPhoneNumberInput =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
     .dependsOn(simpleFacade)
-    .settings(basicSettings("react-phone-number-input", "2.5.1"))
+    .settings(basicSettings("react-phone-number-input", "3.0.22"))
 
+
+val materialUiVersion = "4.9.14"
 
 lazy val materialUiCore =
   project
     .enablePlugins(FacadeGeneratorPlugin)
     .dependsOn(simpleFacade)
     .settings(
-      basicSettings("@material-ui/core", "4.9.4"),
+      basicSettings("@material-ui/core", materialUiVersion),
       reactDocGenRepoUrl := "https://github.com/mui-org/material-ui.git",
-      reactDocGenRepoRef := "v4.9.4",
+      reactDocGenRepoRef := ("v" + materialUiVersion),
       propInfoTransformer := {
         case (_, p @ PropInfo("classes", _, _, true, _, _, _))                                        =>
           p.copy(required = false)
