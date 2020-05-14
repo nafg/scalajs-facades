@@ -8,9 +8,8 @@ import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.{Callback, CallbackTo, ReactEventFromHtml}
 import io.github.nafg.scalajs.facades.reactselect.SelectionType.{reader, writer}
 import io.github.nafg.simplefacade.Implicits.{callbackToWriter, undefinedWriter, vdomNodeReader, vdomNodeWriter}
-import io.github.nafg.simplefacade.PropTypes
+import io.github.nafg.simplefacade.{HasOpaqueReaderWriter, PropTypes}
 
-import slinky.readwrite.{Reader, Writer}
 
 @js.native
 trait HasData[A] extends js.Object {
@@ -30,10 +29,7 @@ trait HasInputValue extends js.Object {
   def inputValue: String
 }
 
-trait CommonProps[A] extends PropTypes {
-  protected implicit val readA: Reader[A] = opaqueReader[A]
-  protected implicit val writeA: Writer[A] = opaqueWriter[A]
-
+trait CommonProps[A] extends PropTypes with HasOpaqueReaderWriter[A] {
   val isClearable = of[Boolean]
   val isMulti = of[Boolean]
   val closeMenuOnSelect = of[Boolean]
@@ -46,7 +42,8 @@ trait CommonProps[A] extends PropTypes {
   val formatGroupLabel = of[OptGroup[A] => VdomNode]
   val formatOptionLabel = of[A => VdomNode]
   val filterOption = of[(FilterParam[A], String) => Boolean]
-  protected val _onInputChange = new PropTypes.Prop[(String, InputActionMeta) => CallbackTo[js.UndefOr[Nothing]]]("onInputChange")
+  protected val _onInputChange =
+    new PropTypes.Prop[(String, InputActionMeta) => CallbackTo[js.UndefOr[Nothing]]]("onInputChange")
   val inputValue = of[String]
   val onMenuOpen = of[() => Callback]
   val onMenuClose = of[() => Callback]

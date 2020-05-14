@@ -57,13 +57,13 @@ object FacadeGenerator {
             val settingsExpr =
               infos
                 .map(i => s"_.${i.ident} := ${i.ident}")
-                .mkString("Seq[Factory.Setting[Props]](", ", ", ") ++ settings")
+                .mkString("Seq[Factory.Setting[Props]](", ", ", ") ++ settings: _*")
             if (maybeChildrenProp.isDefined)
               s"def apply(${paramsStr}settings: Factory.Setting[Props]*): ApplyChildren =\n" +
                 s"    new ApplyChildren($settingsExpr)"
             else
               s"def apply(${paramsStr}settings: Factory.Setting[Props]*): Factory[Props] =\n" +
-                s"    mkFactory($settingsExpr)"
+                s"    factory($settingsExpr)"
         }
 
         val (moduleTrait, moduleTraitParam) = maybeChildrenProp match {

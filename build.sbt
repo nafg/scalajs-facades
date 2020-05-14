@@ -29,21 +29,6 @@ ThisBuild / dynverSonatypeSnapshots := true
 
 publish / skip := true
 
-def basicSettings(npmName: String, npmVersion: String) = Seq(
-  name := npmName.stripPrefix("@") + "_" + (npmVersion match {
-    case VersionNumber(Seq(n, _, _), _, _) => n
-    case s                                 => s
-  }),
-  description := s"Facade for $npmName version $npmVersion",
-  Compile / npmDependencies += npmName -> npmVersion,
-  libraryDependencies ++= Seq(
-    "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0"
-  ),
-  addCompilerPlugin("io.tryp" % "splain" % "0.5.6" cross CrossVersion.patch),
-  scalacOptions += "-P:scalajs:sjsDefinedByDefault"
-)
-
-
 lazy val simpleFacade =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
@@ -55,33 +40,37 @@ lazy val simpleFacade =
       )
     )
 
-lazy val reactSelect =
-  project
-    .enablePlugins(ScalaJSBundlerPlugin)
+def moduleConfig(npmName: String, npmVersion: String): Project => Project =
+  _.enablePlugins(ScalaJSBundlerPlugin)
     .dependsOn(simpleFacade)
-    .settings(basicSettings("react-select", "3.1.0"))
+    .settings(
+      name := npmName.stripPrefix("@") + "_" + (npmVersion match {
+        case VersionNumber(Seq(n, _, _), _, _) => n
+        case s                                 => s
+      }),
+      description := s"Facade for $npmName version $npmVersion",
+      Compile / npmDependencies += npmName -> npmVersion,
+      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
+      addCompilerPlugin("io.tryp" % "splain" % "0.5.6" cross CrossVersion.patch),
+      scalacOptions += "-P:scalajs:sjsDefinedByDefault"
+    )
 
-lazy val reactInputMask =
-  project
-    .enablePlugins(ScalaJSBundlerPlugin)
-    .dependsOn(simpleFacade)
-    .settings(basicSettings("react-input-mask", "2.0.4"))
-
-lazy val reactPhoneNumberInput =
-  project
-    .enablePlugins(ScalaJSBundlerPlugin)
-    .dependsOn(simpleFacade)
-    .settings(basicSettings("react-phone-number-input", "3.0.22"))
+lazy val reactSelect = project.configure(moduleConfig("react-select", "3.1.0"))
+lazy val reactInputMask = project.configure(moduleConfig("react-input-mask", "2.0.4"))
+lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-number-input", "3.0.22"))
+lazy val reactAutocomplete = project.configure(moduleConfig("react-autocomplete", "1.8.1"))
+lazy val reactWidgets = project.configure(moduleConfig("react-widgets", "4.5.0"))
+lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "9.0.2"))
+lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "2.15.0"))
 
 
 val materialUiVersion = "4.9.14"
 
 lazy val materialUiCore =
   project
+    .configure(moduleConfig("@material-ui/core", materialUiVersion))
     .enablePlugins(FacadeGeneratorPlugin)
-    .dependsOn(simpleFacade)
     .settings(
-      basicSettings("@material-ui/core", materialUiVersion),
       reactDocGenRepoUrl := "https://github.com/mui-org/material-ui.git",
       reactDocGenRepoRef := ("v" + materialUiVersion),
       propInfoTransformer := {

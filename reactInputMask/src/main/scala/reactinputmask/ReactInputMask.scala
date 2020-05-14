@@ -20,5 +20,5 @@ object ReactInputMask extends FacadeModule {
 
   override def mkProps = new Props
 
-  def apply(mask: String): Factory[Props] = mkFactory(Seq(_.mask := mask))
+  def apply(mask: String): Factory[Props] = factory(_.mask := mask)
 }
