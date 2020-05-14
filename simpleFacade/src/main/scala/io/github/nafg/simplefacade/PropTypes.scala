@@ -5,7 +5,7 @@ import scala.scalajs.js
 
 import japgolly.scalajs.react.Key
 
-import slinky.readwrite.{Reader, Writer}
+import slinky.readwrite.Writer
 
 
 object PropTypes {
@@ -24,9 +24,6 @@ object PropTypes {
 }
 
 trait PropTypes extends Dynamic {
-  protected def opaqueWriter[A]: Writer[A] = _.asInstanceOf[js.Object]
-  protected def opaqueReader[A]: Reader[A] = _.asInstanceOf[A]
-
   def applyDynamic[A](name: String)(value: A)(implicit writer: Writer[A]): PropTypes.Setting =
     new PropTypes.Setting(name, writer.write(value))
 
