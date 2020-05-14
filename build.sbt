@@ -29,11 +29,14 @@ ThisBuild / dynverSonatypeSnapshots := true
 
 publish / skip := true
 
+def sjsCrossTarget = crossTarget ~= (new File(_, "sjs" + scalaJSVersion))
+
 lazy val simpleFacade =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
       description := "Library for react component facades that are simple to write and simple to use",
+      sjsCrossTarget,
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
         "me.shadaj" %%% "slinky-readwrite" % "0.6.5"
@@ -49,11 +52,12 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
         case s                                 => s
       }),
       description := s"Facade for $npmName version $npmVersion",
+      sjsCrossTarget,
       Compile / npmDependencies += npmName -> npmVersion,
       libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.0",
       addCompilerPlugin("io.tryp" % "splain" % "0.5.6" cross CrossVersion.patch),
-      scalacOptions += "-P:scalajs:sjsDefinedByDefault"
-    )
+      scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
+)
 
 lazy val reactSelect = project.configure(moduleConfig("react-select", "3.1.0"))
 lazy val reactInputMask = project.configure(moduleConfig("react-input-mask", "2.0.4"))
