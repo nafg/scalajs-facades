@@ -1,3 +1,4 @@
-addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler-sjs06" % "0.17.0")
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.32")
+val sjsVer = sys.env.getOrElse("SCALAJS_VERSION", "1.0.1")
+addSbtPlugin("ch.epfl.scala" % s"sbt-scalajs-bundler${if (sjsVer.startsWith("0.6")) "-sjs06" else ""}" % "0.17.0")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % sjsVer)
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.0.0")

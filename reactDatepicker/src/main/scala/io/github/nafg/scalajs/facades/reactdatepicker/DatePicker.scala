@@ -21,7 +21,7 @@ object DatePicker extends FacadeModule {
   class Props extends PropTypes {
     protected implicit val dateReader: Reader[LocalDate] = { o =>
       val d = o.asInstanceOf[js.Date]
-      LocalDate.of(d.getFullYear(), d.getMonth() + 1, d.getDate())
+      LocalDate.of(d.getFullYear().toInt, d.getMonth().toInt + 1, d.getDate().toInt)
     }
     protected implicit val dateWriter: Writer[LocalDate] =
       d => new js.Date(d.getYear, d.getMonthValue - 1, d.getDayOfMonth)
