@@ -32,8 +32,10 @@ object SelectionType {
   }
   implicit object Multi extends SelectionType[Seq] {
     override implicit def writer[A](implicit A: Writer[A]): Writer[Seq[A]] = _.map(A.write).toJSArray
-    override implicit def reader[A](implicit A: Reader[A]): Reader[Seq[A]] =
-      _.asInstanceOf[js.Array[js.Object]].toSeq.map(A.read)
+    override implicit def reader[A](implicit A: Reader[A]): Reader[Seq[A]] = {
+      case null => Nil
+      case v    => v.asInstanceOf[js.Array[js.Object]].toSeq.map(A.read)
+    }
     override def defaultProps[A] = Seq(_.isClearable := true, _.isMulti := true)
     override def toSeq[A](fa: Seq[A]) = fa
   }
