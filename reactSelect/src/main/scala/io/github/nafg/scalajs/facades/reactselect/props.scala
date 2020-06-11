@@ -41,6 +41,7 @@ trait CommonProps[A] extends PropTypes with HasOpaqueReaderWriter[A] {
   protected val _getOptionValue = new PropTypes.Prop[A => String]("getOptionValue")
   val formatGroupLabel = of[OptGroup[A] => VdomNode]
   val formatOptionLabel = of[A => VdomNode]
+  val isOptionDisabled = of[A => Boolean]
   val filterOption = of[(FilterParam[A], String) => Boolean]
   protected val _onInputChange =
     new PropTypes.Prop[(String, InputActionMeta) => CallbackTo[js.UndefOr[Nothing]]]("onInputChange")
