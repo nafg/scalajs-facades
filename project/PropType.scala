@@ -13,27 +13,34 @@ object PropType {
   case class ArrayOf(param: PropType) extends PropType
   case class Union(types: Seq[PropType]) extends PropType
 
-  def read(obj: scala.collection.Map[String, ujson.Value]): PropType = obj("name").str match {
-    case "any"                                        => Any
-    case "array"                                      => ArrayOf(Any)
-    case "bool"                                       => Bool
-    case "element"                                    => Element
-    case "elementType"                                => ElementType
-    case "func"                                       => Func
-    case "node"                                       => Node
-    case "number"                                     => Number
-    case "shape" | "custom" | "instanceOf" | "object" => Object
-    case "string"                                     => String
-    case "arrayOf"                                    => ArrayOf(read(obj("value").obj))
-    case "union"                                      => Union(obj("value").arr.map(o => read(o.obj)))
-    case "enum"                                       =>
+  def read(obj: scala.collection.Map[String, ujson.Value]): Option[PropType] = obj("name").str match {
+    case "any"                             => Some(Any)
+    case "array"                           => Some(ArrayOf(Any))
+    case "bool"                            => Some(Bool)
+    case "element"                         => Some(Element)
+    case "elementType"                     => Some(ElementType)
+    case "func"                            => Some(Func)
+    case "node"                            => Some(Node)
+    case "number"                          => Some(Number)
+    case "string"                          => Some(String)
+    case "arrayOf"                         => read(obj("value").obj).map(ArrayOf)
+    case "shape" | "instanceOf" | "object" => Some(Object)
+    case "custom"                          =>
+      if (obj.get("raw").flatMap(_.strOpt).contains("unsupportedProp"))
+        None
+      else
+        Some(Object)
+    case "union"                           =>
+      Some(Union(obj("value").arr.flatMap(o => read(o.obj))))
+        .filter(_.types.nonEmpty)
+    case "enum"                            =>
       val values = obj("value").arr.map(_.obj("value").str)
       if (values.forall(_.matches("\\d+")))
-        Number
+        Some(Number)
       else if (values.forall(s => s.matches("'.*'") | s.matches("\".*\"")))
-        String
+        Some(String)
       else
-        Any
+        Some(Any)
   }
 
   def importsAndCode(propType: PropType): (Set[String], String) = {

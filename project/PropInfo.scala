@@ -11,25 +11,26 @@ object PropInfo {
     obj
       .toSeq
       .sortBy(_._1)
-      .map { case (name, spec) =>
-        val ident =
-          if (name == "type" || name.contains('-'))
-            "`" + name + "`"
-          else
-            name
+      .flatMap { case (name, spec) =>
+        PropType.read(spec("type").obj)
+          .map { propType =>
+            val ident =
+              if (name == "type" || name.contains('-'))
+                "`" + name + "`"
+              else
+                name
 
-        val propType = PropType.read(spec("type").obj)
+            val (imports, propTypeCode) = PropType.importsAndCode(propType)
 
-        val (imports, propTypeCode) = PropType.importsAndCode(propType)
-
-        PropInfo(
-          name = name,
-          ident = ident,
-          description = spec("description").str,
-          required = spec("required").bool,
-          propType = propType,
-          propTypeCode = propTypeCode,
-          imports = imports
-        )
+            PropInfo(
+              name = name,
+              ident = ident,
+              description = spec("description").str,
+              required = spec("required").bool,
+              propType = propType,
+              propTypeCode = propTypeCode,
+              imports = imports
+            )
+          }
       }
 }
