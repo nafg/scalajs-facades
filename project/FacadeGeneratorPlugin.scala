@@ -54,7 +54,7 @@ object FacadeGeneratorPlugin extends AutoPlugin {
   override def projectSettings = Seq(
     autoImport.reactDocGenDir := cloneOrCheckoutGitRepo.value,
     autoImport.runYarnInstall := {
-      os.proc("yarn", "install")
+      os.proc("yarn", "install", "--mutex", "network")
         .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
     },
     autoImport.propInfoTransformer := PartialFunction.empty,
