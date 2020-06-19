@@ -9,8 +9,13 @@ object FacadeGeneratorPlugin extends AutoPlugin {
     val reactDocGenRepoRef = settingKey[String]("Git ref to run react-docgen in")
     val reactDocGenDir = taskKey[os.Path]("Directory to run react-docgen inside of")
     val runYarnInstall = taskKey[Unit]("Run yarn install in reactDocGenDir")
-    val propInfoTransformer = settingKey[(ComponentInfo, PropInfo) => PropInfo]("Function to post-process PropInfos")
-    val componentInfoTransformer = settingKey[ComponentInfo => ComponentInfo]("Function to post-process ComponentInfos")
+    type PropInfoTransformer = PartialFunction[(ComponentInfo, PropInfo), PropInfo]
+    type ComponentInfoTransformer = ComponentInfo => ComponentInfo
+    type ComponentCodeGenInfoTransformer = PartialFunction[ComponentCodeGenInfo, ComponentCodeGenInfo]
+    val propInfoTransformer = settingKey[PropInfoTransformer]("Function to post-process PropInfos")
+    val componentInfoTransformer = settingKey[ComponentInfoTransformer]("Function to post-process ComponentInfos")
+    val componentCodeGenInfoTransformer =
+      settingKey[ComponentCodeGenInfoTransformer]("Function to post-process ComponentCodeGenInfos")
 
     def generateReactDocGenFacades(subDir: String, jsPackage: String, scalaSubPackage: String) = Def.task {
       runYarnInstall.value
@@ -21,8 +26,9 @@ object FacadeGeneratorPlugin extends AutoPlugin {
         subDir = subDir,
         jsPackage = jsPackage,
         scalaSubPackage = scalaSubPackage,
-        propTransformer = propInfoTransformer.value,
-        componentTransformer = componentInfoTransformer.value
+        propInfoTransformer = Function.untupled(propInfoTransformer.value.orElse { case (_, p) => p }),
+        componentInfoTransformer = componentInfoTransformer.value,
+        componentCodeGenInfoTransformer = componentCodeGenInfoTransformer.value.orElse { case i => i }
       )
     }
   }
@@ -51,8 +57,9 @@ object FacadeGeneratorPlugin extends AutoPlugin {
       os.proc("yarn", "install")
         .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
     },
-    autoImport.propInfoTransformer := ((_, p) => p),
+    autoImport.propInfoTransformer := PartialFunction.empty,
     autoImport.componentInfoTransformer := identity,
+    autoImport.componentCodeGenInfoTransformer := PartialFunction.empty,
     Compile / packageSrc / mappings ++= {
       val base = (Compile / sourceManaged).value
       val files = (Compile / managedSources).value

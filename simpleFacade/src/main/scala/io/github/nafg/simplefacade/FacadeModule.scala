@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 import scala.scalajs.js
 
 import japgolly.scalajs.react.React
-import japgolly.scalajs.react.vdom.all.EmptyVdom
+import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.vdom.{VdomElement, VdomNode}
 
 
@@ -57,6 +57,13 @@ object FacadeModule {
     trait Simple extends NodeChildren {
       def apply(settings: Factory.Setting[Props]*): ApplyChildren = new ApplyChildren(settings: _*)
     }
+  }
+
+  trait ArrayChildren extends NodeChildren {
+    override def childrenToNode(children: Seq[VdomNode]) = children.toVdomArray
+  }
+  object ArrayChildren {
+    trait Simple extends NodeChildren.Simple with ArrayChildren
   }
 }
 

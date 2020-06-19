@@ -47,15 +47,10 @@ object PropType {
     def loop(propType: PropType): (Set[String], String) = propType match {
       case Any            => Set.empty[String] -> "js.Any"
       case Bool           => Set.empty[String] -> "Boolean"
-      case Element        =>
-        Set("japgolly.scalajs.react.vdom.VdomElement", "io.github.nafg.simplefacade.Implicits.vdomElementWriter") ->
-          "VdomElement"
-      case ElementType    =>
-        Set("io.github.nafg.simplefacade.Implicits.elementTypeWriter") -> "japgolly.scalajs.react.raw.React.ElementType"
+      case Element        => CommonImports.VdomElement -> "VdomElement"
+      case ElementType    => CommonImports.ElementType -> "ElementType"
       case Func           => Set.empty[String] -> "(js.Any => js.Any)"
-      case Node           =>
-        Set("japgolly.scalajs.react.vdom.VdomNode", "io.github.nafg.simplefacade.Implicits.vdomNodeWriter") ->
-          "VdomNode"
+      case Node           => CommonImports.VdomNode -> "VdomNode"
       case Number         => Set.empty[String] -> "Double"
       case Object         => Set.empty[String] -> "js.Object"
       case String         => Set.empty[String] -> "String"
@@ -64,8 +59,7 @@ object PropType {
         paramImports -> s"Seq[$paramCode]"
       case Union(types)   =>
         val (paramsImports, paramsCodes) = types.map(loop).unzip
-        (paramsImports.flatten.toSet ++
-          Set("scala.scalajs.js.|")) -> paramsCodes.mkString("(", " | ", ")")
+        (paramsImports.flatten.toSet ++ CommonImports.|) -> paramsCodes.mkString("(", " | ", ")")
     }
 
     def unwrap(s: String) =

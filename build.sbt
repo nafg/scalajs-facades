@@ -49,7 +49,7 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
     .settings(
       name := npmName.stripPrefix("@") + "_" + (npmVersion match {
         case VersionNumber(Seq(n, _, _), _, _) => n
-        case s                                 => s
+        case s                                 => s.takeWhile(_ != '.')
       }),
       description := s"Facade for $npmName version $npmVersion",
       sjsCrossTarget,
@@ -68,67 +68,74 @@ lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "9.0.2
 lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "2.15.0"))
 
 
-val materialUiVersion = "4.9.14"
+def materialUiCoreVersion = "4.10.2"
+
+def commonPropInfoTransformer: PropInfoTransformer = {
+  case (_, p @ PropInfo("classes", _, _, _, true, _)) =>
+    p.copy(required = false)
+}
+
+def commonComponentInfoTransformer: ComponentInfoTransformer =
+  _.modProps(_.filterNot(_.description.trim == "@ignore"))
+    .addPropIfNotExists(PropInfo("style", "js.Object"))
+    .addPropIfNotExists(
+      PropInfo(
+        "onClick",
+        "ReactMouseEvent => Callback",
+        CommonImports.Callback + "japgolly.scalajs.react.ReactMouseEvent"
+      ))
+
+def materialUiGitUrl = "https://github.com/mui-org/material-ui.git"
 
 lazy val materialUiCore =
   project
-    .configure(moduleConfig("@material-ui/core", materialUiVersion))
+    .configure(moduleConfig("@material-ui/core", materialUiCoreVersion))
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
-      reactDocGenRepoUrl := "https://github.com/mui-org/material-ui.git",
-      reactDocGenRepoRef := ("v" + materialUiVersion),
-      propInfoTransformer := {
-        case (_, p @ PropInfo("classes", _, _, true, _, _, _))                                        =>
-          p.copy(required = false)
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" |
-                                                                   "count" |
-                                                                   "rowsPerPage", _, _, _, _, _, _))  =>
+      reactDocGenRepoUrl := materialUiGitUrl,
+      reactDocGenRepoRef := ("v" + materialUiCoreVersion),
+      propInfoTransformer := commonPropInfoTransformer.orElse {
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _, _)) =>
           p.copy(propTypeCode = "Int", imports = Set())
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _, _, _)) =>
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _, _))                   =>
           p.copy(
             propTypeCode = "(ReactEvent, Int) => Callback",
-            imports =
-              p.imports ++
-                Set(
-                  "japgolly.scalajs.react.Callback",
-                  "japgolly.scalajs.react.ReactEvent",
-                  "io.github.nafg.simplefacade.Implicits.callbackToWriter"
-                )
+            imports = CommonImports.Callback ++ CommonImports.ReactEvent
           )
-        case (ComponentInfo("TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _, _)) =>
+        case (ComponentInfo("TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _))                             =>
           p.copy(
             propTypeCode = "ReactEventFromInput => Callback",
-            imports =
-              p.imports ++
-                Set(
-                  "japgolly.scalajs.react.Callback",
-                  "japgolly.scalajs.react.ReactEventFromInput",
-                  "io.github.nafg.simplefacade.Implicits.callbackToWriter"
-                )
+            imports = CommonImports.Callback + "japgolly.scalajs.react.ReactEventFromInput"
           )
-        case (_, p)                                                                                   =>
-          p
       },
-      componentInfoTransformer := { component =>
-        val withStyleProp =
-          if (component.props.exists(_.name == "style"))
-            component
-          else
-            component.copy(props = component.props :+ PropInfo(
-              name = "style",
-              ident = "style",
-              description = "",
-              required = false,
-              propType = PropType.Object,
-              propTypeCode = "js.Object",
-              imports = Set()
-            ))
-        withStyleProp.copy(props = withStyleProp.props.filterNot(_.description.trim == "@ignore"))
+      componentInfoTransformer := commonComponentInfoTransformer.andThen {
+        case c if Set("Container", "TextField").contains(c.name) =>
+          c.addPropIfNotExists(PropInfo("children", "VdomNode", CommonImports.VdomNode))
+        case c                                                   =>
+          c
       },
-      Compile / sourceGenerators +=
-        generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui"),
-      Compile / sourceGenerators +=
-        generateReactDocGenFacades("packages/material-ui-styles/src", "@material-ui/styles", "mui.styles"),
+      Compile / sourceGenerators += generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui")
+    )
+
+lazy val materialUiLab =
+  project
+    .configure(moduleConfig("@material-ui/lab", "4.0.0-alpha.56"))
+    .enablePlugins(FacadeGeneratorPlugin)
+    .settings(
+      reactDocGenRepoUrl := materialUiGitUrl,
+      reactDocGenRepoRef := ("v" + materialUiCoreVersion),
+      propInfoTransformer := commonPropInfoTransformer.orElse {
+        case (ComponentInfo("ToggleButtonGroup", _, _), p @ PropInfo("onChange", _, _, _, _, _)) =>
+          p.copy(
+            propTypeCode = "(ReactEvent, js.Any) => Callback",
+            imports = CommonImports.Callback ++ CommonImports.ReactEvent
+          )
+      },
+      componentInfoTransformer := commonComponentInfoTransformer,
+      componentCodeGenInfoTransformer := {
+        case c if Set("Breadcrumbs", "ToggleButtonGroup").contains(c.componentInfo.name) =>
+          c.copy(moduleTrait = "FacadeModule.ArrayChildren")
+      },
       Compile / sourceGenerators +=
         generateReactDocGenFacades("packages/material-ui-lab/src", "@material-ui/lab", "mui.lab")
     )

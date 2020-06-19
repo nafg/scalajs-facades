@@ -17,8 +17,9 @@ object FacadeGenerator {
           subDir: String,
           jsPackage: String,
           scalaSubPackage: String,
-          propTransformer: (ComponentInfo, PropInfo) => PropInfo = (_, p) => p,
-          componentTransformer: ComponentInfo => ComponentInfo = identity): Seq[File] = {
+          propInfoTransformer: (ComponentInfo, PropInfo) => PropInfo,
+          componentInfoTransformer: ComponentInfo => ComponentInfo,
+          componentCodeGenInfoTransformer: ComponentCodeGenInfo => ComponentCodeGenInfo): Seq[File] = {
     val scalaPackage = "io.github.nafg.scalajs.facades." + scalaSubPackage
     val outputDir = base / scalaPackage.split('.').toList
 
@@ -38,7 +39,8 @@ object FacadeGenerator {
     val componentInfos = docJson.obj.values.collect {
       case value if Set("props", "displayName").forall(value.obj.contains) =>
         val info0 = ComponentInfo.read(value.obj)
-        componentTransformer(info0.copy(props = info0.props.map(propTransformer(info0, _))))
+        componentInfoTransformer(info0)
+          .modProps(_.map(propInfoTransformer(info0, _)).sortBy(_.name))
     }
 
     val allFiles =
@@ -46,9 +48,9 @@ object FacadeGenerator {
         val imports = info.props.flatMap(_.imports).distinct.sorted
         val outputFile = outputDir / (info.name + ".scala")
 
-        val maybeChildrenProp = info.props.find(_.name == "children")
+        val genInfo = componentCodeGenInfoTransformer(ComponentCodeGenInfo(info))
 
-        val requiredNonChildrenProps = info.props.filter(i => i.required && !maybeChildrenProp.contains(i))
+        val requiredNonChildrenProps = info.props.filter(i => i.required && !info.maybeChildrenProp.contains(i))
 
         val applyMethod = requiredNonChildrenProps match {
           case Seq() => ""
@@ -58,7 +60,7 @@ object FacadeGenerator {
               infos
                 .map(i => s"_.${i.ident} := ${i.ident}")
                 .mkString("Seq[Factory.Setting[Props]](", ", ", ") ++ settings: _*")
-            if (maybeChildrenProp.isDefined)
+            if (info.maybeChildrenProp.isDefined)
               s"def apply(${paramsStr}settings: Factory.Setting[Props]*): ApplyChildren =\n" +
                 s"    new ApplyChildren($settingsExpr)"
             else
@@ -66,17 +68,13 @@ object FacadeGenerator {
                 s"    factory($settingsExpr)"
         }
 
-        val (moduleTrait, moduleTraitParam) = maybeChildrenProp match {
-          case Some(i) if i.propType == PropType.Node => "FacadeModule.NodeChildren" -> None
-          case Some(i)                                => "FacadeModule.ChildrenOf" -> Some(i.propTypeCode)
-          case _                                      => "FacadeModule" -> None
-        }
-
         val moduleParent =
-          moduleTrait + (if (applyMethod.nonEmpty) "" else ".Simple") + moduleTraitParam.fold("")("[" + _ + "]")
+          genInfo.moduleTrait +
+            (if (applyMethod.nonEmpty) "" else ".Simple") +
+            genInfo.moduleTraitParam.fold("")("[" + _ + "]")
 
         val (propTypesTrait, propTypesTraitParam) =
-          maybeChildrenProp
+          info.maybeChildrenProp
             .map(i => "PropTypes.WithChildren" -> Some(i.propTypeCode))
             .getOrElse("PropTypes" -> None)
 
