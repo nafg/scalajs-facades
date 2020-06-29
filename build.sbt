@@ -81,8 +81,8 @@ def commonComponentInfoTransformer: ComponentInfoTransformer =
     .addPropIfNotExists(
       PropInfo(
         "onClick",
-        "ReactMouseEvent => Callback",
-        CommonImports.Callback + "japgolly.scalajs.react.ReactMouseEvent"
+        "ReactMouseEventFromHtml => Callback",
+        CommonImports.Callback + CommonImports.react("ReactMouseEventFromHtml")
       ))
 
 def materialUiGitUrl = "https://github.com/mui-org/material-ui.git"
@@ -95,6 +95,38 @@ lazy val materialUiCore =
       reactDocGenRepoUrl := materialUiGitUrl,
       reactDocGenRepoRef := ("v" + materialUiCoreVersion),
       propInfoTransformer := commonPropInfoTransformer.orElse {
+        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("children", _, _, _, _, _))                     =>
+          p.copy(
+            propTypeCode = "VdomElement",
+            imports = CommonImports.VdomElement
+          )
+        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("onClickAway", _, _, _, _, _))                  =>
+          p.copy(
+            propTypeCode = "() => Callback",
+            imports = CommonImports.Callback
+          )
+        case (ComponentInfo("IconButton" | "ListItem", _, _), p @ PropInfo("children", _, _, _, _, _))               =>
+          p.copy(
+            propTypeCode = "VdomNode",
+            imports = CommonImports.VdomNode
+          )
+        case (ComponentInfo("Menu", _, _), p @ PropInfo("anchorEl", _, _, _, _, _))                                  =>
+          p.copy(
+            propTypeCode = "Element | (js.Object => Element)",
+            imports = CommonImports.Element ++ CommonImports.|
+          )
+        case (ComponentInfo("Menu", _, _), p @ PropInfo("onClose", _, _, _, _, _))                                   =>
+          p.copy(
+            propTypeCode = "(ReactEvent, String) => Callback",
+            imports = CommonImports.ReactEvent ++ CommonImports.Callback
+          )
+        case (ComponentInfo("Paper", _, _), p @ PropInfo("elevation", _, _, _, _, _))                                =>
+          p.copy(propTypeCode = "Int")
+        case (ComponentInfo("Popper", _, _), p @ PropInfo("anchorEl", _, _, _, _, _))                                =>
+          p.copy(
+            propTypeCode = "Element | js.Object | (js.Object => (Element | js.Object))",
+            imports = CommonImports.Element ++ CommonImports.|
+          )
         case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _, _)) =>
           p.copy(propTypeCode = "Int", imports = Set())
         case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _, _))                   =>
@@ -105,7 +137,7 @@ lazy val materialUiCore =
         case (ComponentInfo("TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _))                             =>
           p.copy(
             propTypeCode = "ReactEventFromInput => Callback",
-            imports = CommonImports.Callback + "japgolly.scalajs.react.ReactEventFromInput"
+            imports = CommonImports.Callback + CommonImports.react("ReactEventFromInput")
           )
       },
       componentInfoTransformer := commonComponentInfoTransformer.andThen {
@@ -113,6 +145,10 @@ lazy val materialUiCore =
           c.addPropIfNotExists(PropInfo("children", "VdomNode", CommonImports.VdomNode))
         case c                                                   =>
           c
+      },
+      componentCodeGenInfoTransformer := {
+        case c if c.componentInfo.name == "ButtonGroup" =>
+          c.copy(moduleTrait = "FacadeModule.ArrayChildren")
       },
       Compile / sourceGenerators += generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui")
     )

@@ -87,6 +87,7 @@ object FacadeGenerator {
               |${imports.map("import " + _).mkString("\n")}
               |import scala.scalajs.js
               |import scala.scalajs.js.annotation.JSImport
+              |import japgolly.scalajs.react.raw.React.ElementType
               |import io.github.nafg.simplefacade.{FacadeModule, ${if (applyMethod.isEmpty) "" else "Factory, "}PropTypes}
               |
               |
@@ -95,6 +96,8 @@ object FacadeGenerator {
               |  @JSImport("$jsPackage/${info.name}", JSImport.Default)
               |  @js.native
               |  object raw extends js.Object
+              |
+              |  def asElementType = raw.asInstanceOf[ElementType]
               |
               |  override def mkProps = new Props
               |
