@@ -16,6 +16,7 @@ object PropTypes {
 
   class Prop[A](val name: String)(implicit writer: Writer[A]) {
     def :=(value: A): Setting = new Setting(name, writer.write(value))
+    def :=?(value: Option[A]): Setting = new Setting(name, value.map(writer.write).getOrElse(js.undefined))
   }
 
   trait WithChildren[C] extends PropTypes {
