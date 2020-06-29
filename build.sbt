@@ -95,8 +95,9 @@ lazy val materialUiCore =
       reactDocGenRepoUrl := materialUiGitUrl,
       reactDocGenRepoRef := ("v" + materialUiCoreVersion),
       propInfoTransformer := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("children", _, _, _, _, _))                     =>
+        case (ComponentInfo("ClickAwayListener" | "Tooltip", _, _), p @ PropInfo("children", _, _, _, _, _))         =>
           p.copy(
+            required = true,
             propTypeCode = "VdomElement",
             imports = CommonImports.VdomElement
           )
