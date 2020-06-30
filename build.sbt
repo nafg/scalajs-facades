@@ -38,7 +38,7 @@ lazy val simpleFacade =
       description := "Library for react component facades that are simple to write and simple to use",
       sjsCrossTarget,
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.2",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.3",
         "me.shadaj" %%% "slinky-readwrite" % "0.6.5"
       )
     )
@@ -54,7 +54,7 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       description := s"Facade for $npmName version $npmVersion",
       sjsCrossTarget,
       Compile / npmDependencies += npmName -> npmVersion,
-      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.2",
+      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.3",
       addCompilerPlugin("io.tryp" % "splain" % "0.5.7" cross CrossVersion.patch),
       scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
 )
