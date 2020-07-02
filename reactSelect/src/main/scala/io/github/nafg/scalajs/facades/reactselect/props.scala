@@ -70,7 +70,7 @@ trait CreatableProps[A, F[_]] extends CommonProps[A] {
   }
 
   override def getOptionLabel(f: A => String) = super.getOptionLabel(foldNew(f, _.label))
-  override def getOptionValue(f: A => String) = super.getOptionLabel(foldNew(f, _.value))
+  override def getOptionValue(f: A => String) = super.getOptionValue(foldNew(f, _.value))
 }
 
 
