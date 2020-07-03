@@ -58,7 +58,10 @@ trait CommonProps[A] extends PropTypes with HasOpaqueReaderWriter[A] {
 trait CreatableProps[A, F[_]] extends CommonProps[A] {
   implicit val selectionType: SelectionType[F]
   val onCreateOption = of[String => Callback]
-  val isValidNewOption = of[(String, F[A], Seq[Opt[A]]) => Boolean]
+  def isValidNewOption[G[_]](implicit possible: SelectionType.Possible[F, G]) = {
+    import possible.reader
+    of[(String, G[A], Seq[Opt[A]]) => Boolean]
+  }
   val getNewOptionData = of[(String, VdomNode) => A]
 
   protected def foldNew[R](isExisting: A => R, isNew: js.Dynamic => js.Dynamic): A => R = { a =>

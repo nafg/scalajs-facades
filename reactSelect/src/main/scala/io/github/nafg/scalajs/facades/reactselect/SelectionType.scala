@@ -40,6 +40,22 @@ object SelectionType {
     override def toSeq[A](fa: Seq[A]) = fa
   }
 
+  trait Possible[F[_], G[_]] {
+    implicit def reader[A](implicit A: Reader[A]): Reader[G[A]]
+  }
+  object Possible {
+    implicit val multi: Possible[Seq, Seq] = new Possible[Seq, Seq] {
+      override implicit def reader[A](implicit A: Reader[A]): Reader[Seq[A]] = Multi.reader[A]
+    }
+    implicit val optional: Possible[Option, Option] = new Possible[Option, Option] {
+      override implicit def reader[A](implicit A: Reader[A]): Reader[Option[A]] =
+        o => multi.reader[A].read(o).headOption
+    }
+    implicit val single: Possible[Id, Option] = new Possible[Id, Option] {
+      override implicit def reader[A](implicit A: Reader[A]): Reader[Option[A]] = optional.reader[A]
+    }
+  }
+
   implicit def reader[A: Reader, F[_]](implicit F: SelectionType[F]): Reader[F[A]] = F.reader[A]
   implicit def writer[A: Writer, F[_]](implicit F: SelectionType[F]): Writer[F[A]] = F.writer[A]
 }
