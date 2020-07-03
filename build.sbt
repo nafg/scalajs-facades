@@ -61,14 +61,14 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
 
 lazy val reactSelect = project.configure(moduleConfig("react-select", "3.1.0"))
 lazy val reactInputMask = project.configure(moduleConfig("react-input-mask", "2.0.4"))
-lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-number-input", "3.0.22"))
+lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-number-input", "3.0.24"))
 lazy val reactAutocomplete = project.configure(moduleConfig("react-autocomplete", "1.8.1"))
 lazy val reactWidgets = project.configure(moduleConfig("react-widgets", "4.5.0"))
-lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "9.0.2"))
-lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "2.15.0"))
+lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "9.0.3"))
+lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "3.0.0"))
 
 
-def materialUiCoreVersion = "4.10.2"
+def materialUiCoreVersion = "4.11.0"
 
 def commonPropInfoTransformer: PropInfoTransformer = {
   case (_, p @ PropInfo("classes", _, _, _, true, _)) =>
