@@ -17,23 +17,24 @@ trait FacadeModule extends FacadeModuleBase {
   type Props <: PropTypes
   def mkProps: Props
   def factory: Factory[Props] = facade.factory(mkProps)
+  type Setting = Factory.Setting[Props]
 }
 
 object FacadeModule {
   trait Simple extends FacadeModule {
-    def apply(settings: Factory.Setting[Props]*): Factory[Props] = factory(settings: _*)
+    def apply(settings: Setting*): Factory[Props] = factory(settings: _*)
   }
 
   trait ChildrenOf[C] extends FacadeModule {
     type Props <: PropTypes.WithChildren[C]
 
-    class ApplyChildren(settings: Factory.Setting[Props]*) {
+    class ApplyChildren(settings: Setting*) {
       def apply(children: C): Factory[Props] = factory(settings: _*)(_.children := children)
     }
   }
   object ChildrenOf {
     trait Simple[C] extends ChildrenOf[C] {
-      def apply(settings: Factory.Setting[Props]*): ApplyChildren = new ApplyChildren(settings: _*)
+      def apply(settings: Setting*): ApplyChildren = new ApplyChildren(settings: _*)
     }
   }
 
@@ -46,7 +47,7 @@ object FacadeModule {
       case many     => React.Fragment(many: _*)
     }
 
-    class ApplyChildren(settings: Factory.Setting[Props]*) {
+    class ApplyChildren(settings: Setting*) {
       def apply(children: VdomNode*): Factory[Props] = factory(settings: _*)(_.children := childrenToNode(children))
     }
     object ApplyChildren {
@@ -55,7 +56,7 @@ object FacadeModule {
   }
   object NodeChildren {
     trait Simple extends NodeChildren {
-      def apply(settings: Factory.Setting[Props]*): ApplyChildren = new ApplyChildren(settings: _*)
+      def apply(settings: Setting*): ApplyChildren = new ApplyChildren(settings: _*)
     }
   }
 
