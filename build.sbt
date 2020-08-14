@@ -1,7 +1,7 @@
 import sbtdynver.GitDirtySuffix
 
 
-ThisBuild / crossScalaVersions := Seq("2.12.11", "2.13.2")
+ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.3")
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.last
 ThisBuild / organization := "io.github.nafg.scalajs-facades"
 
