@@ -167,6 +167,27 @@ lazy val materialUiLab =
             propTypeCode = "(ReactEvent, js.Any) => Callback",
             imports = CommonImports.Callback ++ CommonImports.ReactEvent
           )
+        case (ComponentInfo("Autocomplete", _, _), p)                                            =>
+          p.name match {
+            case "filterOptions"  => p.copy(propTypeCode = "(Seq[js.Any], js.Object) => Seq[js.Any]")
+            case "getOptionLabel" => p.copy(propTypeCode = "js.Any => String")
+            case "onChange"       =>
+              p.copy(
+                propTypeCode = "(ReactEvent, js.Any) => Callback",
+                imports = CommonImports.Callback ++ CommonImports.ReactEvent
+              )
+            case "onInputChange"  =>
+              p.copy(
+                propTypeCode = "(ReactEvent, String, String) => Callback",
+                imports = CommonImports.Callback ++ CommonImports.ReactEvent
+              )
+            case "renderInput"    =>
+              p.copy(propTypeCode = "js.Dictionary[js.Any] => VdomNode", imports = CommonImports.VdomNode)
+            case "renderOption"   =>
+              p.copy(propTypeCode = "js.Any => VdomNode", imports = CommonImports.VdomNode)
+            case _                =>
+              p
+          }
       },
       componentInfoTransformer := commonComponentInfoTransformer,
       componentCodeGenInfoTransformer := {
