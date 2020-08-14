@@ -21,17 +21,20 @@ object PropTypes {
     implicit class Multiple(val settings: Seq[Setting]) extends Setting {
       override def toMap = settings.flatMap(_.toMap).toMap
     }
-    implicit def fromTagMod[A](tagMod: TagMod): A => Setting = { _ =>
+
+    implicit def fromConvertibleToIterablePairs[A](pairs: A)(implicit view: A => Iterable[(String, js.Any)]): Setting =
+      new Multiple(view(pairs).map { case (k, v) => new Single(k, v) }.toSeq)
+    implicit def fromTagMod(tagMod: TagMod): Setting = {
       val raw = tagMod.toJs
       raw.addKeyToProps()
       raw.addStyleToProps()
       raw.addClassNameToProps()
       new Multiple(
-        raw.nonEmptyChildren.toList.map(new Single("children", _)) ++
-          raw.props.asInstanceOf[js.Dictionary[js.Any]].toSeq
-            .map { case (k, v) => new Single(k, v) }
+        raw.nonEmptyChildren.toList.map(new Single("children", _)) :+
+          fromConvertibleToIterablePairs(raw.props.asInstanceOf[js.Dictionary[js.Any]])
       )
     }
+    implicit def toFactorySetting[A](value: A)(implicit view: A => Setting): Any => Setting = _ => view(value)
   }
 
   class Prop[A](val name: String)(implicit writer: Writer[A]) {
