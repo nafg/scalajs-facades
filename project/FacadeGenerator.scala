@@ -1,5 +1,9 @@
 import java.io.File
 
+import scala.sys.BooleanProp
+
+import os.ProcessOutput
+
 
 object FacadeGenerator {
   os.proc("yarn", "global", "add", "react-docgen")
@@ -29,13 +33,24 @@ object FacadeGenerator {
 
     println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
 
-    val log = base / "react-docgen.log"
+    val log: ProcessOutput =
+      if (BooleanProp.keyExists("docgen.log").value)
+        os.Inherit
+      else
+        base / "react-docgen.log"
 
     os.proc(yarnDir + "/react-docgen", "-o", docGenOutputFile.toString(), subDir)
       .call(cwd = repoDir, stderr = log, stdout = log)
 
+    println()
+
     val docJson = ujson.read(os.read(docGenOutputFile))
 
+    if(BooleanProp.keyExists("docgen.dump").value) {
+      println("Result:")
+      println(docJson.render(indent = 2))
+      println()
+    }
     val componentInfos = docJson.obj.values.collect {
       case value if Set("props", "displayName").forall(value.obj.contains) =>
         val info0 = ComponentInfo.read(value.obj)
@@ -45,6 +60,8 @@ object FacadeGenerator {
 
     val allFiles =
       for (info <- componentInfos) yield {
+        print("Processing " + info.name + "... ")
+
         val imports = info.props.flatMap(_.imports).distinct.sorted
         val outputFile = outputDir / (info.name + ".scala")
 
@@ -110,6 +127,7 @@ object FacadeGenerator {
               |""".stripMargin
 
         os.write.over(outputFile, code)
+        println("wrote " + outputFile.toString())
         outputFile
       }
 
