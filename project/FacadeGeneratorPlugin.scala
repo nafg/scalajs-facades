@@ -54,6 +54,9 @@ object FacadeGeneratorPlugin extends AutoPlugin {
   override def projectSettings = Seq(
     autoImport.reactDocGenDir := cloneOrCheckoutGitRepo.value,
     autoImport.runYarnInstall := {
+      // workaround for https://github.com/reactjs/react-docgen/issues/463
+      os.proc("yarn", "add", "--mutex", "network", "-W", "-D", "react-docgen", "@babel/core@7.10.5", "@babel/parser@7.10.5")
+        .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
       os.proc("yarn", "install", "--mutex", "network")
         .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
     },

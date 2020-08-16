@@ -6,11 +6,6 @@ import os.ProcessOutput
 
 
 object FacadeGenerator {
-  os.proc("yarn", "global", "add", "react-docgen")
-    .call(stderr = os.Inherit, stdout = os.Inherit)
-
-  val yarnDir = os.proc("yarn", "global", "bin").call().out.text().trim
-
   private def comment(str: String, indent: String) =
     if (str.trim.isEmpty) ""
     else
@@ -39,7 +34,7 @@ object FacadeGenerator {
       else
         base / "react-docgen.log"
 
-    os.proc(yarnDir + "/react-docgen", "-o", docGenOutputFile.toString(), subDir)
+    os.proc("yarn", "react-docgen", "--out", docGenOutputFile.toString(), "--exclude", ".*\\.test\\.js$", subDir)
       .call(cwd = repoDir, stderr = log, stdout = log)
 
     println()
