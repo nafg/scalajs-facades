@@ -39,7 +39,7 @@ lazy val simpleFacade =
       sjsCrossTarget,
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.5",
-        "me.shadaj" %%% "slinky-readwrite" % "0.6.5"
+        "me.shadaj" %%% "slinky-readwrite" % "0.6.6"
       )
     )
 
