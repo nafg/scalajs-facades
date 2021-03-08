@@ -1,7 +1,7 @@
 import sbtdynver.GitDirtySuffix
 
 
-ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.3")
+ThisBuild / crossScalaVersions := Seq("2.12.13", "2.13.5")
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.last
 ThisBuild / organization := "io.github.nafg.scalajs-facades"
 
@@ -39,7 +39,7 @@ lazy val simpleFacade =
       sjsCrossTarget,
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
-        "me.shadaj" %%% "slinky-readwrite" % "0.6.6"
+        "me.shadaj" %%% "slinky-readwrite" % "0.6.7"
       )
     )
 
