@@ -71,7 +71,7 @@ lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "3
 def materialUiCoreVersion = "4.11.0"
 
 def commonPropInfoTransformer: PropInfoTransformer = {
-  case (_, p @ PropInfo("classes", _, _, _, true, _)) =>
+  case (_, p @ PropInfo("classes", _, _, _, true)) =>
     p.copy(required = false)
 }
 
@@ -95,50 +95,55 @@ lazy val materialUiCore =
       reactDocGenRepoUrl := materialUiGitUrl,
       reactDocGenRepoRef := ("v" + materialUiCoreVersion),
       propInfoTransformer := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("ClickAwayListener" | "Tooltip", _, _), p @ PropInfo("children", _, _, _, _, _))         =>
+        case (ComponentInfo("ClickAwayListener" | "Tooltip", _, _), p @ PropInfo("children", _, _, _, _))             =>
           p.copy(
             required = true,
-            propTypeCode = "VdomElement",
-            imports = CommonImports.VdomElement
+            propTypeInfo = PropTypeInfo("VdomElement", CommonImports.VdomElement)
           )
-        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("onClickAway", _, _, _, _, _))                  =>
+        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("onClickAway", _, _, _, _))                      =>
           p.copy(
-            propTypeCode = "() => Callback",
-            imports = CommonImports.Callback
+            propTypeInfo = PropTypeInfo("() => Callback", CommonImports.Callback)
           )
-        case (ComponentInfo("IconButton" | "ListItem", _, _), p @ PropInfo("children", _, _, _, _, _))               =>
+        case (ComponentInfo("IconButton" | "ListItem", _, _), p @ PropInfo("children", _, _, _, _))                   =>
           p.copy(
-            propTypeCode = "VdomNode",
-            imports = CommonImports.VdomNode
+            propTypeInfo = PropTypeInfo("VdomNode", CommonImports.VdomNode)
           )
-        case (ComponentInfo("Menu", _, _), p @ PropInfo("anchorEl", _, _, _, _, _))                                  =>
+        case (ComponentInfo("Menu", _, _), p @ PropInfo("anchorEl", _, _, _, _))                                      =>
           p.copy(
-            propTypeCode = "Element | (js.Object => Element)",
-            imports = CommonImports.Element ++ CommonImports.|
+            propTypeInfo = PropTypeInfo("Element | (js.Object => Element)", CommonImports.Element ++ CommonImports.|)
           )
-        case (ComponentInfo("Menu", _, _), p @ PropInfo("onClose", _, _, _, _, _))                                   =>
+        case (ComponentInfo("Menu", _, _), p @ PropInfo("onClose", _, _, _, _))                                       =>
           p.copy(
-            propTypeCode = "(ReactEvent, String) => Callback",
-            imports = CommonImports.ReactEvent ++ CommonImports.Callback
+            propTypeInfo =
+              PropTypeInfo(
+                "(ReactEvent, String) => Callback",
+                CommonImports.ReactEvent ++ CommonImports.Callback
+              )
           )
-        case (ComponentInfo("Paper", _, _), p @ PropInfo("elevation", _, _, _, _, _))                                =>
-          p.copy(propTypeCode = "Int")
-        case (ComponentInfo("Popper", _, _), p @ PropInfo("anchorEl", _, _, _, _, _))                                =>
+        case (ComponentInfo("Paper", _, _), p @ PropInfo("elevation", _, _, _, _))                                    =>
+          p.copy(propTypeInfo = PropTypeInfo("Int"))
+        case (ComponentInfo("Popper", _, _), p @ PropInfo("anchorEl", _, _, _, _))                                    =>
           p.copy(
-            propTypeCode = "Element | js.Object | (js.Object => (Element | js.Object))",
-            imports = CommonImports.Element ++ CommonImports.|
+            propTypeInfo =
+              PropTypeInfo(
+                "Element | js.Object | (js.Object => (Element | js.Object))",
+                CommonImports.Element ++ CommonImports.|
+              )
           )
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _, _)) =>
-          p.copy(propTypeCode = "Int", imports = Set())
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _, _))                   =>
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _))     =>
+          p.copy(propTypeInfo = PropTypeInfo("Int"))
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _))                       =>
           p.copy(
-            propTypeCode = "(ReactEvent, Int) => Callback",
-            imports = CommonImports.Callback ++ CommonImports.ReactEvent
+            propTypeInfo =
+              PropTypeInfo("(ReactEvent, Int) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
           )
-        case (ComponentInfo("InputBase" | "OutlinedInput" | "TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _))                             =>
+        case (ComponentInfo("InputBase" | "OutlinedInput" | "TextField", _, _), p @ PropInfo("onChange", _, _, _, _)) =>
           p.copy(
-            propTypeCode = "ReactEventFromInput => Callback",
-            imports = CommonImports.Callback + CommonImports.react("ReactEventFromInput")
+            propTypeInfo =
+              PropTypeInfo(
+                "ReactEventFromInput => Callback",
+                CommonImports.Callback + CommonImports.react("ReactEventFromInput")
+              )
           )
       },
       componentInfoTransformer := commonComponentInfoTransformer.andThen {
@@ -162,29 +167,35 @@ lazy val materialUiLab =
       reactDocGenRepoUrl := materialUiGitUrl,
       reactDocGenRepoRef := ("v" + materialUiCoreVersion),
       propInfoTransformer := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("ToggleButtonGroup", _, _), p @ PropInfo("onChange", _, _, _, _, _)) =>
+        case (ComponentInfo("ToggleButtonGroup", _, _), p @ PropInfo("onChange", _, _, _, _)) =>
           p.copy(
-            propTypeCode = "(ReactEvent, js.Any) => Callback",
-            imports = CommonImports.Callback ++ CommonImports.ReactEvent
+            propTypeInfo =
+              PropTypeInfo("(ReactEvent, js.Any) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
           )
-        case (ComponentInfo("Autocomplete", _, _), p)                                            =>
+        case (ComponentInfo("Autocomplete", _, _), p)                                         =>
           p.name match {
-            case "filterOptions"  => p.copy(propTypeCode = "(Seq[js.Any], js.Object) => Seq[js.Any]")
-            case "getOptionLabel" => p.copy(propTypeCode = "js.Any => String")
+            case "filterOptions"  => p.copy(propTypeInfo = PropTypeInfo("(Seq[js.Any], js.Object) => Seq[js.Any]"))
+            case "getOptionLabel" => p.copy(propTypeInfo = PropTypeInfo("js.Any => String"))
             case "onChange"       =>
               p.copy(
-                propTypeCode = "(ReactEvent, js.Any) => Callback",
-                imports = CommonImports.Callback ++ CommonImports.ReactEvent
+                propTypeInfo =
+                  PropTypeInfo(
+                    "(ReactEvent, js.Any) => Callback",
+                    CommonImports.Callback ++ CommonImports.ReactEvent
+                  )
               )
             case "onInputChange"  =>
               p.copy(
-                propTypeCode = "(ReactEvent, String, String) => Callback",
-                imports = CommonImports.Callback ++ CommonImports.ReactEvent
+                propTypeInfo =
+                  PropTypeInfo(
+                    "(ReactEvent, String, String) => Callback",
+                    CommonImports.Callback ++ CommonImports.ReactEvent
+                  )
               )
             case "renderInput"    =>
-              p.copy(propTypeCode = "js.Dictionary[js.Any] => VdomNode", imports = CommonImports.VdomNode)
+              p.copy(propTypeInfo = PropTypeInfo("js.Dictionary[js.Any] => VdomNode", CommonImports.VdomNode))
             case "renderOption"   =>
-              p.copy(propTypeCode = "js.Any => VdomNode", imports = CommonImports.VdomNode)
+              p.copy(propTypeInfo = PropTypeInfo("js.Any => VdomNode", CommonImports.VdomNode))
             case _                =>
               p
           }

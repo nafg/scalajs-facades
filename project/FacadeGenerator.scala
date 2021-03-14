@@ -57,7 +57,7 @@ object FacadeGenerator {
       for (info <- componentInfos) yield {
         print("Processing " + info.name + "... ")
 
-        val imports = info.props.flatMap(_.imports).distinct.sorted
+        val imports = info.props.flatMap(_.propTypeInfo.imports).distinct.sorted
         val outputFile = outputDir / (info.name + ".scala")
 
         val genInfo = componentCodeGenInfoTransformer(ComponentCodeGenInfo(info))
@@ -67,7 +67,7 @@ object FacadeGenerator {
         val applyMethod = requiredNonChildrenProps match {
           case Seq() => ""
           case infos =>
-            val paramsStr = infos.map(i => i.ident + ": " + i.propTypeCode + ",\n            ").mkString
+            val paramsStr = infos.map(i => i.ident + ": " + i.propTypeInfo.code + ",\n            ").mkString
             val settingsExpr =
               infos
                 .map(i => s"_.${i.ident} := ${i.ident}")
@@ -87,12 +87,25 @@ object FacadeGenerator {
 
         val (propTypesTrait, propTypesTraitParam) =
           info.maybeChildrenProp
-            .map(i => "PropTypes.WithChildren" -> Some(i.propTypeCode))
+            .map(i => "PropTypes.WithChildren" -> Some(i.propTypeInfo.code))
             .getOrElse("PropTypes" -> None)
 
         val propDefs =
-          info.props.map(p => s"${comment(p.description, "    ")}\n    val ${p.ident} = of[${p.propTypeCode}]")
-
+          info.props.map { case PropInfo(_, ident, PropTypeInfo(code, _, presets), description, _) =>
+            s"${comment(description, "    ")}\n" +
+              (if (presets.isEmpty)
+                s"val $ident = of[$code]"
+              else {
+                s"""object $ident extends PropTypes.Prop[$code]("$ident") {
+                   |${
+                  presets
+                    .map { case PropTypeInfo.Preset(name, code) => s"  val $name = this := $code" }
+                    .mkString("\n")
+                }
+                   |}""".stripMargin
+              })
+                .linesWithSeparators.map("    " + _).mkString
+          }
         val code =
           s"""|package $scalaPackage
               |

@@ -12,6 +12,7 @@ object PropType {
   case object String extends PropType
   case class ArrayOf(param: PropType) extends PropType
   case class Union(types: Seq[PropType]) extends PropType
+  case class Enum(base: PropType, values: Seq[String]) extends PropType
 
   def read(obj: scala.collection.Map[String, ujson.Value]): Option[PropType] = obj("name").str match {
     case "any"                             => Some(Any)
@@ -36,39 +37,10 @@ object PropType {
     case "enum"                            =>
       val values = obj("value").arr.map(_.obj("value").str)
       if (values.forall(_.matches("\\d+")))
-        Some(Number)
+        Some(Enum(Number, values))
       else if (values.forall(s => s.matches("'.*'") | s.matches("\".*\"")))
-        Some(String)
+        Some(Enum(String, values))
       else
-        Some(Any)
-  }
-
-  def importsAndCode(propType: PropType): (Set[String], String) = {
-    def loop(propType: PropType): (Set[String], String) = propType match {
-      case Any            => Set.empty[String] -> "js.Any"
-      case Bool           => Set.empty[String] -> "Boolean"
-      case Element        => CommonImports.VdomElement -> "VdomElement"
-      case ElementType    => CommonImports.ElementType -> "ElementType"
-      case Func           => Set.empty[String] -> "(js.Any => js.Any)"
-      case Node           => CommonImports.VdomNode -> "VdomNode"
-      case Number         => Set.empty[String] -> "Double"
-      case Object         => Set.empty[String] -> "js.Object"
-      case String         => Set.empty[String] -> "String"
-      case ArrayOf(param) =>
-        val (paramImports, paramCode) = loop(param)
-        paramImports -> s"Seq[$paramCode]"
-      case Union(types)   =>
-        val (paramsImports, paramsCodes) = types.map(loop).unzip
-        (paramsImports.flatten.toSet ++ CommonImports.|) -> paramsCodes.mkString("(", " | ", ")")
-    }
-
-    def unwrap(s: String) =
-      if (s.headOption.contains('(') && s.lastOption.contains(')'))
-        s.drop(1).dropRight(1)
-      else
-        s
-
-    val (imports, code) = loop(propType)
-    (imports, unwrap(code))
+        Some(Enum(Any, values))
   }
 }
