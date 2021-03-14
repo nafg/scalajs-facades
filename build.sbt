@@ -135,7 +135,7 @@ lazy val materialUiCore =
             propTypeCode = "(ReactEvent, Int) => Callback",
             imports = CommonImports.Callback ++ CommonImports.ReactEvent
           )
-        case (ComponentInfo("TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _))                             =>
+        case (ComponentInfo("InputBase" | "OutlinedInput" | "TextField", _, _), p @ PropInfo("onChange", _, _, _, _, _))                             =>
           p.copy(
             propTypeCode = "ReactEventFromInput => Callback",
             imports = CommonImports.Callback + CommonImports.react("ReactEventFromInput")
@@ -148,7 +148,7 @@ lazy val materialUiCore =
           c
       },
       componentCodeGenInfoTransformer := {
-        case c @ ComponentCodeGenInfo(ComponentInfo("ButtonGroup" | "List", _, _), _, _) =>
+        case c @ ComponentCodeGenInfo(ComponentInfo("Accordion" | "ButtonGroup" | "List", _, _), _, _) =>
           c.copy(moduleTrait = "FacadeModule.ArrayChildren")
       },
       Compile / sourceGenerators += generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui")
