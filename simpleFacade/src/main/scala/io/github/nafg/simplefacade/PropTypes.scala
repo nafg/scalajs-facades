@@ -2,24 +2,24 @@ package io.github.nafg.simplefacade
 
 import scala.language.{dynamics, implicitConversions}
 import scala.scalajs.js
+import scala.scalajs.js.JSConverters._
 import japgolly.scalajs.react.Key
 import japgolly.scalajs.react.vdom.TagMod
-
 import slinky.readwrite.Writer
 
 
 object PropTypes {
   sealed trait Setting {
-    def toMap: Map[String, js.Any]
+    def toRawProps: js.Object
   }
   object Setting {
     class Single(val key: String, val value: js.Any) extends Setting {
-      override def toMap = Map(key -> value)
+      override def toRawProps = js.Dynamic.literal(key -> value)
       override def toString = s"""$key: $value"""
     }
     implicit class FromBooleanProp(prop: Prop[Boolean]) extends Single(prop.name, true)
     implicit class Multiple(val settings: Seq[Setting]) extends Setting {
-      override def toMap = settings.flatMap(_.toMap).toMap
+      override def toRawProps = MergeProps(settings.toJSArray.map(_.toRawProps))
     }
 
     implicit def fromConvertibleToIterablePairs[A](pairs: A)(implicit view: A => Iterable[(String, js.Any)]): Setting =
@@ -40,6 +40,8 @@ object PropTypes {
   class Prop[A](val name: String)(implicit writer: Writer[A]) {
     def :=(value: A): Setting = new Setting.Single(name, writer.write(value))
     def :=?(value: Option[A]): Setting = new Setting.Single(name, value.map(writer.write).getOrElse(js.undefined))
+    def setAs[B](value: B)(implicit B: Writer[B]): Setting = new Setting.Single(name, B.write(value))
+    def setRaw(value: js.Any): Setting = new Setting.Single(name, value)
   }
 
   trait WithChildren[C] extends PropTypes {
