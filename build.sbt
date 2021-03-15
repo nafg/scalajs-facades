@@ -1,31 +1,39 @@
 import sbtdynver.GitDirtySuffix
 
 
-ThisBuild / crossScalaVersions := Seq("2.12.13", "2.13.5")
-ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.last
-ThisBuild / organization := "io.github.nafg.scalajs-facades"
-
-ThisBuild / scalacOptions ++= Seq(
-  "-deprecation",
-  "-feature",
-  "-unchecked",
-  "-explaintypes",
-  "-Xlint:_",
-  "-Ywarn-dead-code",
-  "-Ywarn-extra-implicit",
-  "-Ywarn-numeric-widen",
-  "-Ywarn-unused:_",
-  "-Ywarn-value-discard"
-)
-
-ThisBuild / scalacOptions ++=
-  (if (scalaVersion.value.startsWith("2.12."))
-    List("-language:higherKinds", "-Xfuture", "-Ypartial-unification")
-  else
-    Nil)
-
-ThisBuild / dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix(""))))
-ThisBuild / dynverSonatypeSnapshots := true
+inThisBuild(List(
+  organization := "io.github.nafg.scalajs-facades",
+  homepage := Some(url("https://github.com/nafg/scalajs-faades")),
+  licenses := List("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
+  developers := List(
+    Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg")
+    )
+  ),
+  crossScalaVersions := Seq("2.12.13", "2.13.5"),
+  scalaVersion := (ThisBuild / crossScalaVersions).value.last,
+  scalacOptions ++= Seq(
+    "-deprecation",
+    "-feature",
+    "-unchecked",
+    "-explaintypes",
+    "-Xlint:_",
+    "-Ywarn-dead-code",
+    "-Ywarn-extra-implicit",
+    "-Ywarn-numeric-widen",
+    "-Ywarn-unused:_",
+    "-Ywarn-value-discard"
+  ),
+  scalacOptions ++=
+    (if (scalaVersion.value.startsWith("2.12."))
+      List("-language:higherKinds", "-Xfuture", "-Ypartial-unification")
+    else
+      Nil),
+  dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
+  dynverSonatypeSnapshots := true,
+  githubWorkflowTargetTags ++= Seq("v*"),
+  githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v"))),
+  githubWorkflowPublish := Seq(WorkflowStep.Sbt(List("ci-release")))
+))
 
 publish / skip := true
 
