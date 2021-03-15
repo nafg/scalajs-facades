@@ -45,6 +45,8 @@ inThisBuild(List(
   )
 ))
 
+sonatypeProfileName := "io.github.nafg"
+
 publish / skip := true
 
 def sjsCrossTarget = crossTarget ~= (new File(_, "sjs" + scalaJSVersion))
