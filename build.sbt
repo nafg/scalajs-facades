@@ -42,7 +42,8 @@ inThisBuild(List(
         "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}"
       )
     )
-  )
+  ),
+  sonatypeProfileName := "io.github.nafg"
 ))
 
 publish / skip := true
