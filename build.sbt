@@ -42,8 +42,7 @@ inThisBuild(List(
         "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}"
       )
     )
-  ),
-  sonatypeProfileName := "io.github.nafg"
+  )
 ))
 
 publish / skip := true
@@ -56,6 +55,7 @@ lazy val simpleFacade =
     .settings(
       description := "Library for react component facades that are simple to write and simple to use",
       sjsCrossTarget,
+      sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
         "me.shadaj" %%% "slinky-readwrite" % "0.6.7"
@@ -72,6 +72,7 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       }),
       description := s"Facade for $npmName version $npmVersion",
       sjsCrossTarget,
+      sonatypeProfileName := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
       libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
       addCompilerPlugin("io.tryp" % "splain" % "0.5.8" cross CrossVersion.patch),
