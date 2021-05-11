@@ -3,11 +3,10 @@ import sbtdynver.GitDirtySuffix
 
 inThisBuild(List(
   organization := "io.github.nafg.scalajs-facades",
-  homepage := Some(url("https://github.com/nafg/scalajs-faades")),
+  homepage := Some(url("https://github.com/nafg/scalajs-facades")),
   licenses := List("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
-    Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg")
-    )
+    Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg"))
   ),
   crossScalaVersions := Seq("2.12.13", "2.13.5"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
