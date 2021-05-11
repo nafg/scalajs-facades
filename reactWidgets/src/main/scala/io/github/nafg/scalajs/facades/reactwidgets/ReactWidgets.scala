@@ -15,13 +15,13 @@ object ReactWidgets {
 
   object raw {
     @js.native
-    @JSImport("react-widgets/lib/Multiselect", JSImport.Default)
+    @JSImport("react-widgets/Multiselect", JSImport.Default)
     object Multiselect extends js.Object
     @js.native
-    @JSImport("react-widgets/lib/Combobox", JSImport.Default)
+    @JSImport("react-widgets/Combobox", JSImport.Default)
     object Combobox extends js.Object
     @js.native
-    @JSImport("react-widgets/lib/DropdownList", JSImport.Default)
+    @JSImport("react-widgets/DropdownList", JSImport.Default)
     object DropdownList extends js.Object
   }
 

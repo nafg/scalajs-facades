@@ -81,16 +81,16 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
 )
 
-lazy val reactSelect = project.configure(moduleConfig("react-select", "3.1.0"))
+lazy val reactSelect = project.configure(moduleConfig("react-select", "4.3.1"))
 lazy val reactInputMask = project.configure(moduleConfig("react-input-mask", "2.0.4"))
-lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-number-input", "3.0.25"))
+lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-number-input", "3.1.21"))
 lazy val reactAutocomplete = project.configure(moduleConfig("react-autocomplete", "1.8.1"))
-lazy val reactWidgets = project.configure(moduleConfig("react-widgets", "4.5.0"))
-lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "9.0.3"))
-lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "3.1.3"))
+lazy val reactWidgets = project.configure(moduleConfig("react-widgets", "5.1.1"))
+lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "10.1.0"))
+lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "3.8.0"))
 
 
-def materialUiCoreVersion = "4.11.0"
+def materialUiCoreVersion = "4.11.4"
 
 def commonPropInfoTransformer: PropInfoTransformer = {
   case (_, p @ PropInfo("classes", _, _, _, true)) =>
@@ -183,7 +183,7 @@ lazy val materialUiCore =
 
 lazy val materialUiLab =
   project
-    .configure(moduleConfig("@material-ui/lab", "4.0.0-alpha.56"))
+    .configure(moduleConfig("@material-ui/lab", "4.0.0-alpha.58"))
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
       reactDocGenRepoUrl := materialUiGitUrl,
