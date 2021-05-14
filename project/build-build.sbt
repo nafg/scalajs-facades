@@ -1,3 +1,3 @@
 libraryDependencies += "com.lihaoyi" %% "os-lib" % "0.7.6"
-libraryDependencies += "com.lihaoyi" %% "ujson" % "1.3.12"
+libraryDependencies += "com.lihaoyi" %% "ujson" % "1.3.13"
 libraryDependencies += "io.github.nafg.mergify" %% "mergify-writer" % "0.2.1"
