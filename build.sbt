@@ -8,7 +8,7 @@ inThisBuild(List(
   developers := List(
     Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg"))
   ),
-  crossScalaVersions := Seq("2.12.13", "2.13.5"),
+  crossScalaVersions := Seq("2.12.13", "2.13.6"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
   scalacOptions ++= Seq(
     "-deprecation",
