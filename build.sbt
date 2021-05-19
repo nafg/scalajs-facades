@@ -76,7 +76,6 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       sonatypeProfileName := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
       libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
-      addCompilerPlugin("io.tryp" % "splain" % "0.5.8" cross CrossVersion.patch),
       scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
 )
 
