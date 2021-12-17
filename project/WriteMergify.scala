@@ -17,7 +17,7 @@ object WriteMergify extends AutoPlugin {
           mergify
             .withRule("Automatically merge successful scala-steward PRs")(
               (Attr.Author :== "scala-steward") +:
-                (for (o <- job.oses; s <- job.scalas; v <- job.javas) yield
+                (for (o <- job.oses; s <- job.scalas; v <- job.javas.map(_.render)) yield
                   Attr.CheckSuccess :== s"${job.name} ($o, $s, $v)"): _*
             )(Action.Merge(strict = true))
             .toYaml
