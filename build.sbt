@@ -29,6 +29,8 @@ inThisBuild(List(
       Nil),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
   dynverSonatypeSnapshots := true,
+  githubWorkflowJobSetup +=
+    WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v2"), params = Map("node-version" -> "10")),
   githubWorkflowTargetTags ++= Seq("v*"),
   githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v"))),
   githubWorkflowPublish := Seq(
@@ -73,6 +75,7 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       }),
       description := s"Facade for $npmName version $npmVersion",
       sjsCrossTarget,
+      useYarn := true,
       sonatypeProfileName := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
       libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
