@@ -5,9 +5,9 @@ import scala.scalajs.js
 import scala.scalajs.js.|
 
 import japgolly.scalajs.react.vdom.VdomNode
-import japgolly.scalajs.react.{Callback, ReactEventFromHtml}
+import japgolly.scalajs.react.{Callback, CallbackTo, ReactEventFromHtml}
 import io.github.nafg.scalajs.facades.reactselect.SelectionType.{reader, writer}
-import io.github.nafg.simplefacade.Implicits.{callbackToWriter, vdomNodeReader, vdomNodeWriter}
+import io.github.nafg.simplefacade.Implicits.{callbackToWriter, undefinedWriter, vdomNodeReader, vdomNodeWriter}
 import io.github.nafg.simplefacade.{HasOpaqueReaderWriter, PropTypes}
 
 
@@ -43,7 +43,8 @@ trait CommonProps[A] extends PropTypes with HasOpaqueReaderWriter[A] {
   val formatOptionLabel = of[A => VdomNode]
   val isOptionDisabled = of[A => Boolean]
   val filterOption = of[(FilterParam[A], String) => Boolean]
-  protected val _onInputChange = new PropTypes.Prop[(String, InputActionMeta) => Callback]("onInputChange")
+  protected val _onInputChange =
+    new PropTypes.Prop[(String, InputActionMeta) => CallbackTo[js.UndefOr[Nothing]]]("onInputChange")
   val inputValue = of[String]
   val onMenuOpen = of[() => Callback]
   val onMenuClose = of[() => Callback]
@@ -51,7 +52,7 @@ trait CommonProps[A] extends PropTypes with HasOpaqueReaderWriter[A] {
 
   def getOptionLabel(f: A => String) = _getOptionLabel := f
   def getOptionValue(f: A => String) = _getOptionValue := f
-  def onInputChange(f: (String, InputActionMeta) => Callback) = _onInputChange := (f(_, _))
+  def onInputChange(f: (String, InputActionMeta) => Callback) = _onInputChange := (f(_, _).map(_ => js.undefined))
 }
 
 trait CreatableProps[A, F[_]] extends CommonProps[A] {
