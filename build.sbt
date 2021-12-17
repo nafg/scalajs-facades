@@ -73,6 +73,7 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       }),
       description := s"Facade for $npmName version $npmVersion",
       sjsCrossTarget,
+      useYarn := true,
       sonatypeProfileName := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
       libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
