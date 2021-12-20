@@ -18,7 +18,8 @@ case class Factory[A](propTypes: A,
                       component: Facade.JsComponentType,
                       settings: Seq[PropTypes.Setting] = Vector.empty) {
   def apply(pairs: Factory.Setting[A]*): Factory[A] = copy(settings = settings ++ pairs.map(_.apply(propTypes)))
-  def rawProps: AnyDict = PropTypes.Setting.toDict(settings: _*)
+  def toDict: AnyDict = PropTypes.Setting.toDict(settings: _*)
+  def rawProps: js.Object = toDict.asInstanceOf[js.Object]
   def render: Js.UnmountedWithRawType[js.Object, Null, Js.RawMounted[js.Object, Null]] =
-    component.apply(rawProps.asInstanceOf[js.Object])
+    component.apply(rawProps)
 }
