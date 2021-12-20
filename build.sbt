@@ -155,7 +155,7 @@ lazy val materialUiCore =
           )
         case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _))     =>
           p.copy(propTypeInfo = PropTypeInfo("Int"))
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage", _, _, _, _))                       =>
+        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage" | "onPageChange", _, _, _, _))      =>
           p.copy(
             propTypeInfo =
               PropTypeInfo("(ReactEvent, Int) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
