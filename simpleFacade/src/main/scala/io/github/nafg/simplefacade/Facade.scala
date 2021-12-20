@@ -10,13 +10,13 @@ object Facade {
   type JsComponentType =
     Js.ComponentSimple[
       js.Object,
-      CtorType.Summoner.Aux[js.Object, Children.Varargs, CtorType.PropsAndChildren]#CT,
+      CtorType.Summoner.Aux[js.Object, Children.Varargs, CtorType.Props]#CT,
       Js.UnmountedWithRawType[js.Object, Null, Js.RawMounted[js.Object, Null]]
-      ]
+    ]
 
   def apply(component: Facade.JsComponentType): Facade = new Facade(component)
 
-  def apply(component: js.Any): Facade = apply(JsComponent[js.Object, Children.Varargs, Null](component))
+  def apply(component: js.Any): Facade = apply(JsComponent[js.Object, Children.None, Null](component))
 }
 
 class Facade(component: Facade.JsComponentType) {

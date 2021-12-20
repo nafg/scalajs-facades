@@ -2,28 +2,34 @@ package io.github.nafg.simplefacade
 
 import scala.language.{dynamics, implicitConversions}
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters._
 import japgolly.scalajs.react.Key
 import japgolly.scalajs.react.vdom.TagMod
+import io.github.nafg.simplefacade.MergeProps.AnyDict
 import slinky.readwrite.Writer
 
 
 object PropTypes {
   sealed trait Setting {
-    def toRawProps: js.Object
+    def applyToDict(dict: AnyDict): Unit
   }
   object Setting {
     class Single(val key: String, val value: js.Any) extends Setting {
-      override def toRawProps = js.Dynamic.literal(key -> value)
       override def toString = s"""$key: $value"""
+      override def applyToDict(dict: AnyDict): Unit = {
+        val existingValue: js.Any = if (dict.contains(key)) js.Any.wrapDictionary(dict)(key) else js.undefined
+        dict(key) = MergeProps.merge(key, existingValue, value)
+      }
     }
+
     implicit class FromBooleanProp(prop: Prop[Boolean]) extends Single(prop.name, true)
-    implicit class Multiple(val settings: Seq[Setting]) extends Setting {
-      override def toRawProps = MergeProps(settings.toJSArray.map(_.toRawProps))
+
+    implicit class Multiple(val settings: Iterable[Setting]) extends Setting {
+      override def applyToDict(dict: AnyDict): Unit = settings.foreach(_.applyToDict(dict))
     }
 
     implicit def fromConvertibleToIterablePairs[A](pairs: A)(implicit view: A => Iterable[(String, js.Any)]): Setting =
-      new Multiple(view(pairs).map { case (k, v) => new Single(k, v) }.toSeq)
+      new Multiple(view(pairs).map { case (k, v) => new Single(k, v) })
+
     implicit def fromTagMod(tagMod: TagMod): Setting = {
       val raw = tagMod.toJs
       raw.addKeyToProps()
@@ -31,10 +37,17 @@ object PropTypes {
       raw.addClassNameToProps()
       new Multiple(
         raw.nonEmptyChildren.toList.map(new Single("children", _)) :+
-          fromConvertibleToIterablePairs(raw.props.asInstanceOf[js.Dictionary[js.Any]])
+          new Multiple(raw.props.asInstanceOf[AnyDict].map { case (k, v) => new Single(k, v) })
       )
     }
+
     implicit def toFactorySetting[A](value: A)(implicit view: A => Setting): Any => Setting = _ => view(value)
+
+    def toDict(settings: Setting*): AnyDict = {
+      val base = js.Dictionary.empty[js.Any]
+      settings.foreach(_.applyToDict(base))
+      base
+    }
   }
 
   class Prop[A](val name: String)(implicit writer: Writer[A]) {

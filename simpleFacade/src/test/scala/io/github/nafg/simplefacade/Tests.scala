@@ -25,4 +25,12 @@ class Tests extends munit.FunSuite {
       Map[String, AnyVal]("a" -> 1, "b" -> true)
     )
   }
+  test("MergeProps") {
+    var x = 1
+    val f =
+      MergeProps.merge("onEvent", js.Any.fromFunction1(x += (_: Int)), js.Any.fromFunction1(x *= (_: Int)))
+        .asInstanceOf[js.Function1[Int, Unit]]
+    f(2)
+    assertEquals(x, 6)
+  }
 }
