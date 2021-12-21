@@ -120,7 +120,7 @@ object FacadeGenerator {
           info.props.map { case PropInfo(_, ident, PropTypeInfo(code, _, presets), description, _) =>
             s"${comment(description, "    ")}\n" +
               (if (presets.isEmpty)
-                s"val $ident = of[$code]"
+                s"def $ident = of[$code]"
               else {
                 s"""object $ident extends PropTypes.Prop[$code]("$ident") {
                    |${
