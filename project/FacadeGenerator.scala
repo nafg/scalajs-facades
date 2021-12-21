@@ -7,9 +7,16 @@ import os.ProcessOutput
 
 object FacadeGenerator {
   private def comment(str: String, indent: String) =
-    if (str.trim.isEmpty) ""
-    else
-      (s"$indent/**" +: str.linesIterator.map(" * " + _).toSeq :+ " */").mkString("\n" + indent)
+    str.trim.linesIterator.toVector match {
+      case Seq()        => ""
+      case init :+ last =>
+        def docComment(ls: Seq[String]) =
+          (s"$indent/**" +: ls.map(" * " + _) :+ " */").mkString("\n" + indent)
+        if (last.trim.startsWith("@deprecated "))
+          docComment(init) + "\n" + indent + "@deprecated(\"" + last.trim.stripPrefix("@deprecated ") + "\", \"\")"
+        else
+          docComment(init :+ last)
+    }
 
   def run(base: os.Path,
           repoDir: os.Path,
