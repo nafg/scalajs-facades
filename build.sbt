@@ -274,3 +274,4 @@ generateInstallInstructions := {
   val newReadme = before.map(_ + "\n").mkString + block + after.map(_ + "\n").mkString
   os.write.over(readmePath, newReadme)
 }
+commands += Command.command("testQuickAndPublishLocal")("testQuick" :: "publishLocal" :: _)
