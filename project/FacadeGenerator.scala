@@ -113,6 +113,9 @@ object FacadeGenerator {
               })
                 .linesWithSeparators.map("    " + _).mkString
           }
+        val componentDescription =
+          s"View original docs online: https://v4.mui.com/api/${kebabCase(info.name)}/\n\n" +
+            info.description
         val code =
           s"""|package $scalaPackage
               |
@@ -123,7 +126,7 @@ object FacadeGenerator {
               |import io.github.nafg.simplefacade.{FacadeModule, ${if (applyMethod.isEmpty) "" else "Factory, "}PropTypes}
               |
               |
-              |${comment(info.description, "")}
+              |${comment(componentDescription, "")}
               |object ${info.name} extends $moduleParent {
               |  @JSImport("$jsPackage/${info.name}", JSImport.Default)
               |  @js.native
