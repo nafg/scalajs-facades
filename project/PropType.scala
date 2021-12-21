@@ -30,7 +30,7 @@ object PropType {
       if (obj.get("raw").flatMap(_.strOpt).contains("unsupportedProp"))
         None
       else
-        Some(Object)
+        Some(Any)
     case "union"                           =>
       Some(Union(obj("value").arr.flatMap(o => read(o.obj))))
         .filter(_.types.nonEmpty)
