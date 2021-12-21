@@ -32,8 +32,7 @@ object FacadeGenerator {
     val outputDir = base / scalaPackage.split('.').toList
 
     os.makeDir.all(outputDir)
-
-    val docGenOutputFile = os.temp(suffix = ".json")
+    val docGenOutputFile = base / "react-docgen.json"
 
     println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
 
