@@ -128,6 +128,16 @@ lazy val materialUiCore =
           p.copy(
             propTypeInfo = PropTypeInfo("() => Callback", CommonImports.Callback)
           )
+        case (ComponentInfo("Dialog", _, _), p @ PropInfo("onClose", _, _, _, _))                                     =>
+          p.copy(
+            propTypeInfo =
+              PropTypeInfo("(ReactEvent, String) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
+          )
+        case (ComponentInfo("Icon", _, _), p @ PropInfo("fontSize", _, _, _, _))                                      =>
+          p.copy(
+            propTypeInfo =
+              PropTypeInfo(PropType.Enum(PropType.String, List("'inherit'", "'large'", "'medium'", "'small'")))
+          )
         case (ComponentInfo("IconButton" | "ListItem", _, _), p @ PropInfo("children", _, _, _, _))                   =>
           p.copy(
             propTypeInfo = PropTypeInfo("VdomNode", CommonImports.VdomNode)
@@ -153,6 +163,11 @@ lazy val materialUiCore =
                 "Element | js.Object | (js.Object => (Element | js.Object))",
                 CommonImports.Element ++ CommonImports.|
               )
+          )
+        case (ComponentInfo("TableCell", _, _), p @ PropInfo("padding", _, _, _, _))                                  =>
+          p.copy(
+            propTypeInfo =
+              PropTypeInfo(PropType.Enum(PropType.String, List("'normal'", "'checkbox'", "'none'")))
           )
         case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _))     =>
           p.copy(propTypeInfo = PropTypeInfo("Int"))
