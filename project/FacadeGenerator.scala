@@ -2,7 +2,9 @@ import java.io.File
 
 import scala.sys.BooleanProp
 
+import io.circe.derivation.renaming.kebabCase
 import os.ProcessOutput
+import cats.implicits._
 
 
 object FacadeGenerator {
@@ -63,33 +65,50 @@ object FacadeGenerator {
     val allFiles =
       for (info <- componentInfos) yield {
         print("Processing " + info.name + "... ")
-
         val imports = info.props.flatMap(_.propTypeInfo.imports).distinct.sorted
         val outputFile = outputDir / (info.name + ".scala")
-
         val genInfo = componentCodeGenInfoTransformer(ComponentCodeGenInfo(info))
-
         val requiredNonChildrenProps = info.props.filter(i => i.required && !info.maybeChildrenProp.contains(i))
-
-        val applyMethod = requiredNonChildrenProps match {
+        def method(name: String, params: Seq[(String, String)], resultType: String)(body: String) =
+          s"  def $name(${params.map { case (name, typ) => s"$name: $typ" }.mkString(", ")}): $resultType =\n" +
+            s"    $body"
+        val factoryMethods = requiredNonChildrenProps match {
           case Seq() => ""
           case infos =>
-            val paramsStr = infos.map(i => i.ident + ": " + i.propTypeInfo.code + ",\n            ").mkString
-            val settingsExpr =
-              infos
-                .map(i => s"_.${i.ident} := ${i.ident}")
-                .mkString("Seq[Factory.Setting[Props]](", ", ", ") ++ settings: _*")
-            if (info.maybeChildrenProp.isDefined)
-              s"def apply(${paramsStr}settings: Factory.Setting[Props]*): ApplyChildren =\n" +
-                s"    new ApplyChildren($settingsExpr)"
-            else
-              s"def apply(${paramsStr}settings: Factory.Setting[Props]*): Factory[Props] =\n" +
-                s"    factory($settingsExpr)"
+            def mkParams(propInfos: Seq[PropInfo]): Seq[(String, String)] =
+              propInfos.map(i => i.ident.toString -> i.propTypeInfo.code)
+            def mkSettingsExprs[A](xs: Seq[A])(ident: A => Identifier, code: A => String) =
+              xs.map(x => s"_.${ident(x)} := ${code(x)}")
+            val settingsVarArgParam = "settings" -> "Setting*"
+            def mkFactoryMethod(name: String, params: Seq[(String, String)])(settingsExprs: Seq[String]) = {
+              val settingsExpr = settingsExprs.mkString("Seq[Setting](", ", ", ") ++ settings: _*")
+              if (info.maybeChildrenProp.isDefined)
+                method(name, params :+ settingsVarArgParam, "ApplyChildren")(s"new ApplyChildren($settingsExpr)")
+              else
+                method(name, params :+ settingsVarArgParam, "Factory[Props]")(s"factory($settingsExpr)")
+            }
+            val applyMethod =
+              mkFactoryMethod("apply", mkParams(infos))(
+                mkSettingsExprs(infos)(_.ident, _.ident.toString)
+              )
+            val (withPresets, others) = infos.partition(_.propTypeInfo.presets.nonEmpty)
+            val presetMethods =
+              if (withPresets.isEmpty) Nil
+              else
+                withPresets.toList.traverse(_.propTypeInfo.presets.toList).map {
+                  case first +: rest =>
+                    val name = first.name.value + rest.map(_.name.value.capitalize).mkString
+                    mkFactoryMethod(name, mkParams(others))(
+                      mkSettingsExprs(infos.zip(first +: rest))(_._1.ident, _._2.code) ++
+                        mkSettingsExprs(others)(_.ident, _.ident.toString)
+                    )
+                }
+            (applyMethod +: presetMethods).mkString("\n\n")
         }
 
         val moduleParent =
           genInfo.moduleTrait +
-            (if (applyMethod.nonEmpty) "" else ".Simple") +
+            (if (factoryMethods.nonEmpty) "" else ".Simple") +
             genInfo.moduleTraitParam.fold("")("[" + _ + "]")
 
         val (propTypesTrait, propTypesTraitParam) =
@@ -123,7 +142,7 @@ object FacadeGenerator {
               |import scala.scalajs.js
               |import scala.scalajs.js.annotation.JSImport
               |import japgolly.scalajs.react.raw.React.ElementType
-              |import io.github.nafg.simplefacade.{FacadeModule, ${if (applyMethod.isEmpty) "" else "Factory, "}PropTypes}
+              |import io.github.nafg.simplefacade.{FacadeModule, ${if (factoryMethods.isEmpty || info.maybeChildrenProp.isDefined) "" else "Factory, "}PropTypes}
               |
               |
               |${comment(componentDescription, "")}
@@ -140,7 +159,7 @@ object FacadeGenerator {
               |${propDefs.mkString("\n")}
               |  }
               |
-              |  $applyMethod
+              |$factoryMethods
               |}
               |""".stripMargin
 
