@@ -61,7 +61,7 @@ lazy val simpleFacade =
       sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
-        "me.shadaj" %%% "slinky-readwrite" % "0.6.8",
+        "me.shadaj" %%% "slinky-readwrite" % "0.7.0",
         "org.scalameta" %%% "munit" % "0.7.29" % Test
       )
     )
