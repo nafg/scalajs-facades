@@ -62,11 +62,12 @@ object PropTypes {
   }
 }
 
-trait PropTypes extends Dynamic {
-  def applyDynamic[A](name: String)(value: A)(implicit writer: Writer[A]): PropTypes.Setting =
-    new PropTypes.Setting.Single(name, writer.write(value))
+trait PropTypes {
+  object dyn extends Dynamic {
+    def applyDynamic[A](name: String)(value: A)(implicit writer: Writer[A]): PropTypes.Setting =
+      new PropTypes.Setting.Single(name, writer.write(value))
+  }
 
   def of[A: Writer](implicit name: sourcecode.Name) = new PropTypes.Prop[A](name.value)
-
   val key = of[Key]
 }
