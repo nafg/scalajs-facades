@@ -1,10 +1,12 @@
 import java.io.File
-
 import scala.sys.BooleanProp
-
-import io.circe.derivation.renaming.kebabCase
-import os.ProcessOutput
 import cats.implicits._
+import io.circe.derivation.renaming.kebabCase
+import os.{Path, ProcessOutput}
+import sbt.Cache
+import sbt.util.CacheImplicits._
+import sbt.util.CacheStore
+import sjsonnew.JsonFormat
 
 
 object FacadeGenerator {
@@ -19,7 +21,31 @@ object FacadeGenerator {
         else
           docComment(init :+ last)
     }
-
+  def doCached[A: JsonFormat](cacheStore: CacheStore, dir: os.Path, keyExtra: String = "")(f: => A): A = {
+    val committedState = os.proc("git", "describe", "--tags", "--dirty").call(cwd = dir).out.trim()
+    val modifiedState = os.proc("git", "diff", "HEAD").call(cwd = dir).out.text()
+    val key =
+      dir + "\n" +
+        committedState + "\n" +
+        modifiedState + "\n" +
+        keyExtra
+    val cache = Cache.cached[String, A](cacheStore)(_ => f)
+    cache(key)
+  }
+  private def runReactDocGen(base: Path, repoDir: Path, subDir: String) =
+    doCached(CacheStore((base / "docgen-cache.json").toIO), repoDir, subDir) {
+      val docGenOutputFile = base / "react-docgen.json"
+      println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
+      val log: ProcessOutput =
+        if (BooleanProp.keyExists("docgen.log").value)
+          os.Inherit
+        else
+          base / "react-docgen.log"
+      os.proc("yarn", "react-docgen", "--out", docGenOutputFile.toString(), "--exclude", ".*\\.test\\.js$", subDir)
+        .call(cwd = repoDir, stderr = log, stdout = log)
+      println()
+      os.read(docGenOutputFile)
+    }
   def run(base: os.Path,
           repoDir: os.Path,
           subDir: String,
@@ -30,26 +56,11 @@ object FacadeGenerator {
           componentCodeGenInfoTransformer: ComponentCodeGenInfo => ComponentCodeGenInfo): Seq[File] = {
     val scalaPackage = "io.github.nafg.scalajs.facades." + scalaSubPackage
     val outputDir = base / scalaPackage.split('.').toList
-
     os.makeDir.all(outputDir)
-    val docGenOutputFile = base / "react-docgen.json"
-
-    println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
-
-    val log: ProcessOutput =
-      if (BooleanProp.keyExists("docgen.log").value)
-        os.Inherit
-      else
-        base / "react-docgen.log"
-
-    os.proc("yarn", "react-docgen", "--out", docGenOutputFile.toString(), "--exclude", ".*\\.test\\.js$", subDir)
-      .call(cwd = repoDir, stderr = log, stdout = log)
-
-    println()
-
-    val docJson = ujson.read(os.read(docGenOutputFile))
-
-    if(BooleanProp.keyExists("docgen.dump").value) {
+    val docJson = ujson.read(
+      runReactDocGen(base, repoDir, subDir)
+    )
+    if (BooleanProp.keyExists("docgen.dump").value) {
       println("Result:")
       println(docJson.render(indent = 2))
       println()
