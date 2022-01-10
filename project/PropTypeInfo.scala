@@ -1,3 +1,7 @@
+import sjsonnew.BasicJsonProtocol._
+import sjsonnew.JsonFormat
+
+
 case class PropTypeInfo(code: String, imports: Set[String] = Set.empty, presets: Seq[PropTypeInfo.Preset] = Nil)
 
 object PropTypeInfo {
@@ -5,7 +9,6 @@ object PropTypeInfo {
 
   private val stringEnumValueRE = "'(.*)'".r
   private val litEnumValueRE = """(true|false|-?\d+\.\d+|-?\d+)""".r
-
   def apply(propType: PropType): PropTypeInfo = {
     def loop(propType: PropType): PropTypeInfo = propType match {
       case PropType.Any                => PropTypeInfo("js.Any")
@@ -47,4 +50,7 @@ object PropTypeInfo {
     val propTypeInfo = loop(propType)
     propTypeInfo.copy(code = unwrap(propTypeInfo.code))
   }
+  implicit val presetJF: JsonFormat[Preset] = caseClass(Preset.apply _, Preset.unapply _)("name", "code")
+  implicit val rw: JsonFormat[PropTypeInfo] =
+    caseClass(new PropTypeInfo(_, _, _), unapply)("code", "imports", "presets")
 }
