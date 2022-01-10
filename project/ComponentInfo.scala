@@ -1,6 +1,9 @@
+import sjsonnew.BasicJsonProtocol._
+import sjsonnew.JsonFormat
+
+
 case class ComponentInfo(name: String, description: String, props: Seq[PropInfo]) {
   lazy val maybeChildrenProp = props.find(_.name == "children")
-
   def modProps(f: Seq[PropInfo] => Seq[PropInfo]) = copy(props = f(props))
   def addPropIfNotExists(propInfo: PropInfo) =
     if (props.exists(_.name == propInfo.name))
@@ -15,4 +18,5 @@ object ComponentInfo {
       description = jsonObject("description").str,
       props = PropInfo.readAll(jsonObject("props").obj - "key")
     )
+  implicit val jf: JsonFormat[ComponentInfo] = caseClass(apply _, unapply _)("name", "description", "props")
 }

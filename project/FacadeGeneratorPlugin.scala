@@ -1,5 +1,6 @@
 import sbt.Keys._
 import sbt._
+import sbt.util.StampedFormat.UnitJsonFormat
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 
 
@@ -55,10 +56,13 @@ object FacadeGeneratorPlugin extends AutoPlugin {
     autoImport.reactDocGenDir := cloneOrCheckoutGitRepo.value,
     autoImport.runYarnInstall := {
       // workaround for https://github.com/reactjs/react-docgen/issues/463
-      os.proc("yarn", "add", "--mutex", "network", "-W", "-D", "react-docgen", "@babel/core@7.10.5", "@babel/parser@7.10.5")
-        .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
-      os.proc("yarn", "install", "--mutex", "network")
-        .call(cwd = autoImport.reactDocGenDir.value, stderr = os.Inherit, stdout = os.Inherit)
+      val dir = autoImport.reactDocGenDir.value
+      FacadeGenerator.doCached[Unit](streams.value.cacheStoreFactory.make("yarn-install"), dir) {
+        os.proc("yarn", "add", "--mutex", "network", "-W", "-D", "react-docgen", "@babel/core@7.10.5", "@babel/parser@7.10.5")
+          .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
+        os.proc("yarn", "install", "--mutex", "network", "--prefer-offline")
+          .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
+      }
     },
     autoImport.propInfoTransformer := PartialFunction.empty,
     autoImport.componentInfoTransformer := identity,

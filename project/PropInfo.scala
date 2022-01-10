@@ -1,8 +1,13 @@
+import sjsonnew.BasicJsonProtocol._
+import sjsonnew.JsonFormat
+
+
 case class PropInfo(name: String,
                     ident: Identifier,
                     propTypeInfo: PropTypeInfo,
                     description: String,
                     required: Boolean)
+
 object PropInfo {
   def apply(name: String, code: String, imports: Set[String] = Set.empty): PropInfo =
     PropInfo(name, Identifier(name), PropTypeInfo(code, imports), "", required = false)
@@ -23,4 +28,6 @@ object PropInfo {
             )
           }
       }
+  implicit val jf: JsonFormat[PropInfo] =
+    caseClass(new PropInfo(_, _, _, _, _), unapply)("name", "ident", "propTypeInfo", "description", "required")
 }
