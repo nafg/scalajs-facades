@@ -9,15 +9,14 @@ def myScalacOptions(version: String) =
         opts.unchecked ++
         opts.feature,
     (_: options.V2).explaintypes,
-    (opts: options.V2_12) =>
-      opts.language("higherKinds") ++ opts.Xfuture ++ opts.YpartialUnification,
     (_: options.V2_13).Xlint("_"),
     (opts: options.V2_13_6_+) =>
       opts.WdeadCode ++
         opts.WextraImplicit ++
         opts.WnumericWiden ++
         opts.XlintUnused ++
-        opts.WvalueDiscard,
+        opts.WvalueDiscard ++
+        opts.Xsource("3")
   )
 
 inThisBuild(List(
@@ -27,7 +26,7 @@ inThisBuild(List(
   developers := List(
     Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg"))
   ),
-  crossScalaVersions := Seq("2.12.15", "2.13.7"),
+  crossScalaVersions := Seq("2.13.7", "3.0.2"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
   scalacOptions ++= myScalacOptions(scalaVersion.value),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
@@ -63,7 +62,8 @@ lazy val simpleFacade =
       sjsCrossTarget,
       sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
+        "com.github.japgolly.scalajs-react" %%% "core" % "2.0.0",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "2.0.0",
         "me.shadaj" %%% "slinky-readwrite" % "0.7.0",
         "org.scalameta" %%% "munit" % "0.7.29" % Test
       )
