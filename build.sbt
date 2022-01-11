@@ -1,5 +1,24 @@
+import _root_.io.github.nafg.scalacoptions._
 import sbtdynver.GitDirtySuffix
 
+
+def myScalacOptions(version: String) =
+  ScalacOptions.all(version)(
+    (opts: options.Common) =>
+      opts.deprecation ++
+        opts.unchecked ++
+        opts.feature,
+    (_: options.V2).explaintypes,
+    (opts: options.V2_12) =>
+      opts.language("higherKinds") ++ opts.Xfuture ++ opts.YpartialUnification,
+    (_: options.V2_13).Xlint("_"),
+    (opts: options.V2_13_6_+) =>
+      opts.WdeadCode ++
+        opts.WextraImplicit ++
+        opts.WnumericWiden ++
+        opts.XlintUnused ++
+        opts.WvalueDiscard,
+  )
 
 inThisBuild(List(
   organization := "io.github.nafg.scalajs-facades",
@@ -10,23 +29,7 @@ inThisBuild(List(
   ),
   crossScalaVersions := Seq("2.12.15", "2.13.7"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
-  scalacOptions ++= Seq(
-    "-deprecation",
-    "-feature",
-    "-unchecked",
-    "-explaintypes",
-    "-Xlint:_",
-    "-Ywarn-dead-code",
-    "-Ywarn-extra-implicit",
-    "-Ywarn-numeric-widen",
-    "-Ywarn-unused:_",
-    "-Ywarn-value-discard"
-  ),
-  scalacOptions ++=
-    (if (scalaVersion.value.startsWith("2.12."))
-      List("-language:higherKinds", "-Xfuture", "-Ypartial-unification")
-    else
-      Nil),
+  scalacOptions ++= myScalacOptions(scalaVersion.value),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
   dynverSonatypeSnapshots := true,
   githubWorkflowJobSetup +=
