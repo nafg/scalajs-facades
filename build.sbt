@@ -31,6 +31,7 @@ inThisBuild(List(
   scalacOptions ++= myScalacOptions(scalaVersion.value),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
   dynverSonatypeSnapshots := true,
+  versionScheme := Some("early-semver"),
   githubWorkflowJobSetup +=
     WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v2"), params = Map("node-version" -> "12")),
   githubWorkflowTargetTags ++= Seq("v*"),
