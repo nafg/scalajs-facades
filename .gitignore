@@ -5,3 +5,5 @@ target/
 .bsp/
 .vscode/
 metals.sbt
+*.semanticdb
+/*/yarn.lock

@@ -3,8 +3,8 @@ package io.github.nafg.simplefacade
 import scala.scalajs.js
 
 import japgolly.scalajs.react.CallbackTo
-import japgolly.scalajs.react.raw.React
-import japgolly.scalajs.react.raw.React.ElementType
+import japgolly.scalajs.react.facade.React
+import japgolly.scalajs.react.facade.React.ElementType
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^.VdomNode
 

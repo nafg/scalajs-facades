@@ -1,5 +1,23 @@
+import _root_.io.github.nafg.scalacoptions._
 import sbtdynver.GitDirtySuffix
 
+
+def myScalacOptions(version: String) =
+  ScalacOptions.all(version)(
+    (opts: options.Common) =>
+      opts.deprecation ++
+        opts.unchecked ++
+        opts.feature,
+    (_: options.V2).explaintypes,
+    (_: options.V2_13).Xlint("_"),
+    (opts: options.V2_13_6_+) =>
+      opts.WdeadCode ++
+        opts.WextraImplicit ++
+        opts.WnumericWiden ++
+        opts.XlintUnused ++
+        opts.WvalueDiscard ++
+        opts.Xsource("3")
+  )
 
 inThisBuild(List(
   organization := "io.github.nafg.scalajs-facades",
@@ -8,25 +26,9 @@ inThisBuild(List(
   developers := List(
     Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg"))
   ),
-  crossScalaVersions := Seq("2.12.15", "2.13.7"),
+  crossScalaVersions := Seq("2.13.7", "3.0.2"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
-  scalacOptions ++= Seq(
-    "-deprecation",
-    "-feature",
-    "-unchecked",
-    "-explaintypes",
-    "-Xlint:_",
-    "-Ywarn-dead-code",
-    "-Ywarn-extra-implicit",
-    "-Ywarn-numeric-widen",
-    "-Ywarn-unused:_",
-    "-Ywarn-value-discard"
-  ),
-  scalacOptions ++=
-    (if (scalaVersion.value.startsWith("2.12."))
-      List("-language:higherKinds", "-Xfuture", "-Ypartial-unification")
-    else
-      Nil),
+  scalacOptions ++= myScalacOptions(scalaVersion.value),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
   dynverSonatypeSnapshots := true,
   githubWorkflowJobSetup +=
@@ -60,7 +62,8 @@ lazy val simpleFacade =
       sjsCrossTarget,
       sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
+        "com.github.japgolly.scalajs-react" %%% "core" % "2.0.0",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "2.0.0",
         "me.shadaj" %%% "slinky-readwrite" % "0.7.0",
         "org.scalameta" %%% "munit" % "0.7.29" % Test
       )
@@ -79,7 +82,6 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       useYarn := true,
       sonatypeProfileName := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
-      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "extra" % "1.7.7",
       scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
 )
 

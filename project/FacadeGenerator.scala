@@ -127,7 +127,7 @@ object FacadeGenerator {
           |${imports.map("import " + _).mkString("\n")}
           |import scala.scalajs.js
           |import scala.scalajs.js.annotation.JSImport
-          |import japgolly.scalajs.react.raw.React.ElementType
+          |import japgolly.scalajs.react.facade.React.ElementType
           |import io.github.nafg.simplefacade.{FacadeModule, ${if (factoryMethods.isEmpty || info.maybeChildrenProp.isDefined) "" else "Factory, "}PropTypes}
           |
           |
