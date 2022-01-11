@@ -38,7 +38,7 @@ object PropTypes {
       new Multiple(
         raw.nonEmptyChildren.toList.map(new Single("children", _)) :+
           // see https://github.com/lampepfl/dotty/issues/14244
-          new Multiple(raw.props.asInstanceOf[AnyDict].toIterable.map { case (k, v) => new Single(k, v) })
+          new Multiple(raw.props.asInstanceOf[AnyDict].toSeq.map { case (k, v) => new Single(k, v) })
       )
     }
 
