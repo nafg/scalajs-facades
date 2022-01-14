@@ -26,11 +26,12 @@ inThisBuild(List(
   developers := List(
     Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg"))
   ),
-  crossScalaVersions := Seq("2.13.7", "3.1.0"),
+  crossScalaVersions := Seq("2.13.8", "3.0.2"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
   scalacOptions ++= myScalacOptions(scalaVersion.value),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
   dynverSonatypeSnapshots := true,
+  versionScheme := Some("early-semver"),
   githubWorkflowJobSetup +=
     WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v2"), params = Map("node-version" -> "12")),
   githubWorkflowTargetTags ++= Seq("v*"),
