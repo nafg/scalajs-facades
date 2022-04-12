@@ -63,8 +63,8 @@ lazy val simpleFacade =
       sjsCrossTarget,
       sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "core" % "2.0.1",
-        "com.github.japgolly.scalajs-react" %%% "extra" % "2.0.1",
+        "com.github.japgolly.scalajs-react" %%% "core" % "2.1.0",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "2.1.0",
         "me.shadaj" %%% "slinky-readwrite" % "0.7.2",
         "org.scalameta" %%% "munit" % "0.7.29" % Test
       )
