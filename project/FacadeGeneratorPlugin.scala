@@ -58,7 +58,7 @@ object FacadeGeneratorPlugin extends AutoPlugin {
       // workaround for https://github.com/reactjs/react-docgen/issues/463
       val dir = autoImport.reactDocGenDir.value
       FacadeGenerator.doCached[Unit](streams.value.cacheStoreFactory.make("yarn-install"), dir) {
-        os.proc("yarn", "remove", "-W", "vrtest-mui")
+        os.proc("yarn", "remove", "--mutex", "network", "-W", "vrtest-mui")
           .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
         val toAdd = List("@babel/core@7.10.5", "@babel/parser@7.10.5")
         os.proc("yarn", "add", "--mutex", "network", "-W", "-D", "react-docgen", toAdd)
