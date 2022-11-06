@@ -26,7 +26,7 @@ inThisBuild(List(
   developers := List(
     Developer("nafg", "Naftoli Gugenheim", "98384+nafg@users.noreply.github.com", url("https://github.com/nafg"))
   ),
-  crossScalaVersions := Seq("2.13.10", "3.1.3"),
+  crossScalaVersions := Seq("2.13.10", "3.2.0"),
   scalaVersion := (ThisBuild / crossScalaVersions).value.last,
   scalacOptions ++= myScalacOptions(scalaVersion.value),
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
