@@ -1,5 +1,11 @@
+import _root_.io.github.nafg.mergify.dsl._
 import sbtdynver.GitDirtySuffix
 
+
+mergifyExtraConditions := Seq(
+  (Attr.Author :== "scala-steward") ||
+    (Attr.Author :== "nafg-scala-steward[bot]")
+)
 
 inThisBuild(List(
   homepage := Some(url("https://github.com/nafg/scalajs-facades")),
