@@ -17,7 +17,7 @@ inThisBuild(List(
   dynverSonatypeSnapshots             := true,
   versionScheme                       := Some("early-semver"),
   githubWorkflowJobSetup +=
-    WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v2"), params = Map("node-version" -> "12")),
+    WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v4"), params = Map("node-version" -> "18")),
   githubWorkflowTargetTags ++= Seq("v*"),
   githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v"))),
   githubWorkflowPublish               := Seq(

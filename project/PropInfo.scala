@@ -17,16 +17,19 @@ object PropInfo {
       .toSeq
       .sortBy(_._1)
       .flatMap { case (name, spec) =>
-        PropType.read(spec("type").obj)
-          .map { propType =>
-            PropInfo(
-              name = name,
-              ident = Identifier(name),
-              propTypeInfo = PropTypeInfo(propType),
-              description = spec("description").str,
-              required = spec("required").bool
-            )
-          }
+        if (!spec.obj.contains("type"))
+          None
+        else
+          PropType.read(spec("type").obj)
+            .map { propType =>
+              PropInfo(
+                name = name,
+                ident = Identifier(name),
+                propTypeInfo = PropTypeInfo(propType),
+                description = spec("description").str,
+                required = spec("required").bool
+              )
+            }
       }
   implicit val jf: JsonFormat[PropInfo] =
     caseClass(new PropInfo(_, _, _, _, _), unapply)("name", "ident", "propTypeInfo", "description", "required")
