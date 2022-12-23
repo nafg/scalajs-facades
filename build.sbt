@@ -41,7 +41,7 @@ lazy val simpleFacade =
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "core" % "2.1.1",
         "com.github.japgolly.scalajs-react" %%% "extra" % "2.1.1",
-        "me.shadaj" %%% "slinky-readwrite" % "0.7.2",
+        "me.shadaj" %%% "slinky-readwrite" % "0.7.3",
         "org.scalameta" %%% "munit" % "0.7.29" % Test
       )
     )
