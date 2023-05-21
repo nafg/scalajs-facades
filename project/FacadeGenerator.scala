@@ -2,11 +2,11 @@ import java.io.File
 
 import scala.sys.BooleanProp
 
-import cats.implicits._
-import io.circe.derivation.renaming.kebabCase
+import cats.implicits.*
+import io.circe.generic.extras.Configuration.kebabCaseTransformation
 import os.{Path, ProcessOutput}
 import sbt.Cache
-import sbt.util.CacheImplicits._
+import sbt.util.CacheImplicits.*
 import sbt.util.CacheStore
 import sjsonnew.{IsoString, JsonFormat}
 
@@ -119,7 +119,7 @@ object FacadeGenerator {
             .linesWithSeparators.map("    " + _).mkString
       }
     val componentDescription =
-      s"View original docs online: https://v4.mui.com/api/${kebabCase(info.name)}/\n\n" +
+      s"View original docs online: https://v4.mui.com/api/${kebabCaseTransformation(info.name)}/\n\n" +
         info.description
     val code =
       s"""|package $scalaPackage
