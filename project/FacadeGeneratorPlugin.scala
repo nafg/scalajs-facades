@@ -1,5 +1,5 @@
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 import sbt.util.StampedFormat.UnitJsonFormat
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 
@@ -60,8 +60,16 @@ object FacadeGeneratorPlugin extends AutoPlugin {
       FacadeGenerator.doCached[Unit](streams.value.cacheStoreFactory.make("yarn-install"), dir) {
         os.proc("yarn", "remove", "--mutex", "network", "-W", "vrtest-mui")
           .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit, check = false)
-        val toAdd = List("@babel/core@7.10.5", "@babel/parser@7.10.5")
-        os.proc("yarn", "add", "--mutex", "network", "-W", "-D", "react-docgen", toAdd)
+        val toAdd =
+          List(
+            "@babel/core@7.10.5",
+            "@babel/helper-environment-visitor@7.21.5",
+            "@babel/parser@7.10.5",
+            "@babel/traverse@7.21.5",
+            "@babel/types@7.21.5",
+            "@jridgewell/gen-mapping@0.3.3"
+          )
+        os.proc("yarn", "add", "--mutex", "network", "-W", "-D", "react-docgen@5.3.0", toAdd)
           .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
         os.proc("yarn", "install", "--mutex", "network", "--prefer-offline")
           .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
