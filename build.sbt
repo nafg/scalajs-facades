@@ -71,7 +71,7 @@ lazy val reactWaypoint = project.configure(moduleConfig("react-waypoint", "10.3.
 lazy val reactDatepicker = project.configure(moduleConfig("react-datepicker", "4.8.0"))
 
 
-def materialUiCoreVersion = "4.12.3"
+def materialUiCoreVersion = "4.12.4"
 
 def commonPropInfoTransformer: PropInfoTransformer = {
   case (_, p @ PropInfo("classes", _, _, _, true)) =>
