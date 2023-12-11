@@ -1,7 +1,10 @@
+import java.io.FileReader
+
 import sbt.*
 import sbt.Keys.*
 import sbt.util.StampedFormat.UnitJsonFormat
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
+import _root_.io.circe.yaml.parser
 
 
 object FacadeGeneratorPlugin extends AutoPlugin {
@@ -10,28 +13,23 @@ object FacadeGeneratorPlugin extends AutoPlugin {
     val reactDocGenRepoRef = settingKey[String]("Git ref to run react-docgen in")
     val reactDocGenDir     = taskKey[os.Path]("Directory to run react-docgen inside of")
     val runYarnInstall     = taskKey[Unit]("Run yarn install in reactDocGenDir")
-    type PropInfoTransformer             = PartialFunction[(ComponentInfo, PropInfo), PropInfo]
-    type ComponentInfoTransformer        = ComponentInfo => ComponentInfo
-    type ComponentCodeGenInfoTransformer = PartialFunction[ComponentCodeGenInfo, ComponentCodeGenInfo]
-    val propInfoTransformer             = settingKey[PropInfoTransformer]("Function to post-process PropInfos")
-    val componentInfoTransformer        =
-      settingKey[ComponentInfoTransformer]("Function to post-process ComponentInfos")
-    val componentCodeGenInfoTransformer =
-      settingKey[ComponentCodeGenInfoTransformer]("Function to post-process ComponentCodeGenInfos")
+    val overrides          = settingKey[Overrides]("Overrides for component info")
 
     def generateReactDocGenFacades(subDir: String, jsPackage: String, scalaSubPackage: String) =
       Def.task {
         runYarnInstall.value
-
+        val logger          = streams.value.log
+        val overrides       =
+          parser.parse(new FileReader("overrides.yml")).toTry.get
+            .as[Map[String, Overrides]].toTry.get.apply(scalaSubPackage)
         FacadeGenerator.run(
           base = os.Path((Compile / sourceManaged).value),
           repoDir = reactDocGenDir.value,
           subDir = subDir,
           jsPackage = jsPackage,
           scalaSubPackage = scalaSubPackage,
-          propInfoTransformer = Function.untupled(propInfoTransformer.value.orElse { case (_, p) => p }),
-          componentInfoTransformer = componentInfoTransformer.value,
-          componentCodeGenInfoTransformer = componentCodeGenInfoTransformer.value.orElse { case i => i }
+          overrides = overrides,
+          logger = logger
         )
       }
   }
@@ -57,18 +55,15 @@ object FacadeGeneratorPlugin extends AutoPlugin {
 
   override def projectSettings =
     Seq(
-      autoImport.reactDocGenDir                  := cloneOrCheckoutGitRepo.value,
-      autoImport.runYarnInstall                  := {
-        // workaround for https://github.com/reactjs/react-docgen/issues/463
+      autoImport.reactDocGenDir := cloneOrCheckoutGitRepo.value,
+      autoImport.runYarnInstall := {
         val dir = autoImport.reactDocGenDir.value
         FacadeGenerator.doCached[Unit](streams.value.cacheStoreFactory.make("yarn-install"), dir) {
           os.proc("yarn", "install", "--mutex", "network", "--prefer-offline")
             .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
         }
       },
-      autoImport.propInfoTransformer             := PartialFunction.empty,
-      autoImport.componentInfoTransformer        := identity,
-      autoImport.componentCodeGenInfoTransformer := PartialFunction.empty,
+      watchSources += file("overrides.yml"),
       Compile / packageSrc / mappings ++= {
         val base  = (Compile / sourceManaged).value
         val files = (Compile / managedSources).value

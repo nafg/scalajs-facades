@@ -1,4 +1,4 @@
-import _root_.io.github.nafg.scalacoptions._
+import _root_.io.github.nafg.scalacoptions.*
 
 
 def myScalacOptions(version: String) =
@@ -77,22 +77,6 @@ val emotionNpmDeps = Compile / npmDependencies ++= Seq(
   "@emotion/styled" -> "11.11.0"
 )
 
-def commonPropInfoTransformer: PropInfoTransformer = {
-  case (_, p @ PropInfo("classes", _, _, _, true)) =>
-    p.copy(required = false)
-}
-
-def commonComponentInfoTransformer: ComponentInfoTransformer =
-  _.modProps(_.filterNot(_.description.trim == "@ignore"))
-    .addPropIfNotExists(PropInfo("style", "js.Object"))
-    .addPropIfNotExists(
-      PropInfo(
-        "onClick",
-        "ReactMouseEventFromHtml => Callback",
-        CommonImports.Callback + CommonImports.react("ReactMouseEventFromHtml")
-      )
-    )
-
 def materialUiGitUrl = "https://github.com/mui-org/material-ui.git"
 
 lazy val materialUiBase =
@@ -101,25 +85,8 @@ lazy val materialUiBase =
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
       emotionNpmDeps,
-      reactDocGenRepoUrl              := materialUiGitUrl,
-      reactDocGenRepoRef              := ("v" + materialUiCoreVersion),
-      propInfoTransformer             := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("children", _, _, _, _))    =>
-          p.copy(
-            required = true,
-            propTypeInfo = PropTypeInfo("VdomElement", CommonImports.VdomElement)
-          )
-        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("onClickAway", _, _, _, _)) =>
-          p.copy(propTypeInfo =
-            PropTypeInfo("() => Callback", CommonImports.Callback)
-          )
-      },
-      componentInfoTransformer := commonComponentInfoTransformer.andThen {
-        case c if Set("Container", "TextField").contains(c.name) =>
-          c.addPropIfNotExists(PropInfo("children", "VdomNode", CommonImports.VdomNode))
-        case c                                                   =>
-          c
-      },
+      reactDocGenRepoUrl := materialUiGitUrl,
+      reactDocGenRepoRef := ("v" + materialUiCoreVersion),
       Compile / sourceGenerators += generateReactDocGenFacades("packages/mui-base/src", "@mui/base", "mui.base")
     )
 
@@ -131,107 +98,6 @@ lazy val materialUiCore =
       emotionNpmDeps,
       reactDocGenRepoUrl := materialUiGitUrl,
       reactDocGenRepoRef := ("v" + materialUiCoreVersion),
-      propInfoTransformer := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("Autocomplete", _, _), p) =>
-          p.name match {
-            case "filterOptions"  => p.copy(propTypeInfo = PropTypeInfo("(Seq[js.Any], js.Object) => Seq[js.Any]"))
-            case "getOptionLabel" => p.copy(propTypeInfo = PropTypeInfo("js.Any => String"))
-            case "onChange"       =>
-              p.copy(
-                propTypeInfo =
-                  PropTypeInfo(
-                    "(ReactEvent, js.Any) => Callback",
-                    CommonImports.Callback ++ CommonImports.ReactEvent
-                  )
-              )
-            case "onInputChange"  =>
-              p.copy(
-                propTypeInfo =
-                  PropTypeInfo(
-                    "(ReactEvent, String, String) => Callback",
-                    CommonImports.Callback ++ CommonImports.ReactEvent
-                  )
-              )
-            case "renderInput"    =>
-              p.copy(propTypeInfo = PropTypeInfo("js.Dictionary[js.Any] => VdomNode", CommonImports.VdomNode))
-            case "renderOption"   =>
-              p.copy(propTypeInfo = PropTypeInfo("js.Any => VdomNode", CommonImports.VdomNode))
-            case _                =>
-              p
-          }
-        case (ComponentInfo("Tooltip", _, _), p @ PropInfo("children", _, _, _, _))                                   =>
-          p.copy(
-            required = true,
-            propTypeInfo = PropTypeInfo("VdomElement", CommonImports.VdomElement)
-          )
-        case (ComponentInfo("Dialog", _, _), p @ PropInfo("onClose", _, _, _, _))                                     =>
-          p.copy(propTypeInfo =
-            PropTypeInfo("(ReactEvent, String) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
-          )
-        case (ComponentInfo("Icon", _, _), p @ PropInfo("fontSize", _, _, _, _))                                      =>
-          p.copy(propTypeInfo =
-            PropTypeInfo(PropType.Enum(PropType.String, List("'inherit'", "'large'", "'medium'", "'small'")))
-          )
-        case (ComponentInfo("IconButton" | "ListItem", _, _), p @ PropInfo("children", _, _, _, _))                   =>
-          p.copy(propTypeInfo =
-            PropTypeInfo("VdomNode", CommonImports.VdomNode)
-          )
-        case (ComponentInfo("InputBase" | "OutlinedInput" | "TextField", _, _), p @ PropInfo("onChange", _, _, _, _)) =>
-          p.copy(
-            propTypeInfo =
-              PropTypeInfo(
-                "ReactEventFromInput => Callback",
-                CommonImports.Callback + CommonImports.react("ReactEventFromInput")
-              )
-          )
-        case (ComponentInfo("Menu", _, _), p @ PropInfo("anchorEl", _, _, _, _))                                      =>
-          p.copy(propTypeInfo =
-            PropTypeInfo("Element | (js.Object => Element)", CommonImports.Element ++ CommonImports.|)
-          )
-        case (ComponentInfo("Menu", _, _), p @ PropInfo("onClose", _, _, _, _))                                       =>
-          p.copy(propTypeInfo =
-            PropTypeInfo(
-              "(ReactEvent, String) => Callback",
-              CommonImports.ReactEvent ++ CommonImports.Callback
-            )
-          )
-        case (ComponentInfo("Paper", _, _), p @ PropInfo("elevation", _, _, _, _))                                    =>
-          p.copy(propTypeInfo = PropTypeInfo("Int"))
-        case (ComponentInfo("Popper", _, _), p @ PropInfo("anchorEl", _, _, _, _))                                    =>
-          p.copy(propTypeInfo =
-            PropTypeInfo(
-              "Element | js.Object | (js.Object => (Element | js.Object))",
-              CommonImports.Element ++ CommonImports.|
-            )
-          )
-        case (ComponentInfo("TableCell", _, _), p @ PropInfo("padding", _, _, _, _))                                  =>
-          p.copy(propTypeInfo =
-            PropTypeInfo(PropType.Enum(PropType.String, List("'normal'", "'checkbox'", "'none'")))
-          )
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("page" | "count" | "rowsPerPage", _, _, _, _))     =>
-          p.copy(propTypeInfo = PropTypeInfo("Int"))
-        case (ComponentInfo("TablePagination", _, _), p @ PropInfo("onChangePage" | "onPageChange", _, _, _, _))      =>
-          p.copy(propTypeInfo =
-            PropTypeInfo("(ReactEvent, Int) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
-          )
-        case (ComponentInfo("ToggleButtonGroup", _, _), p @ PropInfo("onChange", _, _, _, _))                         =>
-          p.copy(
-            propTypeInfo =
-              PropTypeInfo("(ReactEvent, js.Any) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
-          )
-      },
-      componentInfoTransformer        := commonComponentInfoTransformer.andThen {
-        case c if Set("Container", "TextField").contains(c.name) =>
-          c.addPropIfNotExists(PropInfo("children", "VdomNode", CommonImports.VdomNode))
-        case c                                                   =>
-          c
-      },
-      componentCodeGenInfoTransformer := {
-        case c @ ComponentCodeGenInfo(ComponentInfo("ButtonGroup" | "List", _, _), _, _) =>
-          c.copy(moduleTrait = "FacadeModule.ArrayChildren")
-        case c if Set("Breadcrumbs", "ToggleButtonGroup").contains(c.componentInfo.name) =>
-          c.copy(moduleTrait = "FacadeModule.ArrayChildren")
-      },
       Compile / sourceGenerators += generateReactDocGenFacades("packages/mui-material/src", "@mui/material", "mui")
     )
 
@@ -243,8 +109,6 @@ lazy val materialUiLab =
       emotionNpmDeps,
       reactDocGenRepoUrl := materialUiGitUrl,
       reactDocGenRepoRef := ("v" + materialUiCoreVersion),
-      propInfoTransformer := commonPropInfoTransformer,
-      componentInfoTransformer        := commonComponentInfoTransformer,
       Compile / sourceGenerators += generateReactDocGenFacades("packages/mui-lab/src", "@mui/lab", "mui.lab")
     )
 
