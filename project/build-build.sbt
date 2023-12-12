@@ -1,5 +1,6 @@
 libraryDependencies += "com.lihaoyi"                   %% "os-lib"               % "0.9.2"
 libraryDependencies += "com.lihaoyi"                   %% "ujson"                % "3.1.3"
+libraryDependencies += "com.lihaoyi"                   %% "pprint"               % "0.8.1"
 libraryDependencies += "io.github.nafg.scalac-options" %% "scalac-options"       % "0.2.0"
 libraryDependencies += "io.circe"                      %% "circe-generic-extras" % "0.14.3"
 libraryDependencies += "io.circe"                      %% "circe-yaml-v12"       % "0.15.1"

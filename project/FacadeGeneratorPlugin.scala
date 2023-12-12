@@ -1,10 +1,12 @@
 import java.io.FileReader
 
+import _root_.io.circe.yaml.v12.Parser
+import cats.data.Validated
+import cats.implicits.toShow
 import sbt.*
 import sbt.Keys.*
 import sbt.util.StampedFormat.UnitJsonFormat
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
-import _root_.io.circe.yaml.parser
 
 
 object FacadeGeneratorPlugin extends AutoPlugin {
@@ -20,8 +22,19 @@ object FacadeGeneratorPlugin extends AutoPlugin {
         runYarnInstall.value
         val logger          = streams.value.log
         val overrides       =
-          parser.parse(new FileReader("overrides.yml")).toTry.get
-            .as[Map[String, Overrides]].toTry.get.apply(scalaSubPackage)
+          Parser.default.parse(new FileReader("overrides.yml")).toTry.get
+            .asAccumulating[Map[String, Overrides]] match {
+            case Validated.Invalid(errors) =>
+              errors.toList.foreach(failure => logger.error(failure.show))
+              sys.error(errors.toString)
+            case Validated.Valid(map)      => map(scalaSubPackage)
+          }
+        val overridesString = pprint.apply(overrides).render
+        logger.info(
+          overridesString.linesWithSeparators
+            .map(s"[${scalaSubPackage}] " + _)
+            .mkString
+        )
         FacadeGenerator.run(
           base = os.Path((Compile / sourceManaged).value),
           repoDir = reactDocGenDir.value,

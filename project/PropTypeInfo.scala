@@ -29,7 +29,7 @@ object PropTypeInfo       {
     override def safeCode             = code
     override def presets: Seq[Preset] = Nil
   }
-  private object Simple    {
+  object Simple            {
     case object bool         extends Simple("Boolean")
     case object int          extends Simple("Int")
     case object double       extends Simple("Double")
@@ -58,7 +58,7 @@ object PropTypeInfo       {
       vdomElement
     )
 
-    case class Sequence(base: PropTypeInfo) extends Simple(s"Seq[${base.safeCode /* temp */}]", base.imports)
+    case class Sequence(arrayOf: PropTypeInfo) extends Simple(s"Seq[${arrayOf.code}]", arrayOf.imports)
     object Sequence {
       implicit lazy val codecSequence: Codec[Sequence] = deriveConfiguredCodec[Sequence]
     }
@@ -90,8 +90,6 @@ object PropTypeInfo       {
             .getOrElse(React(str))
         }
       }
-
-//    implicit val simpleCodec: Codec[PropTypeInfo.Simple] = Codec.from(Simple.decodeSimple, Simple.encodeSimple)
   }
   case class Function(args: Seq[PropTypeInfo], result: PropTypeInfo) extends PropTypeInfo {
     override def code     =
@@ -118,7 +116,7 @@ object PropTypeInfo       {
       )
     override def sequence: PropTypeInfo = Simple.Sequence(this)
   }
-  case class Enum(base: Simple, override val presets: Seq[Preset]) extends PropTypeInfo {
+  case class WithPresets(base: PropTypeInfo, override val presets: Seq[Preset]) extends PropTypeInfo {
     override def code     = base.code
     override def safeCode = base.safeCode
     override def imports  = base.imports
@@ -143,7 +141,7 @@ object PropTypeInfo       {
   val vdomNode: PropTypeInfo                    = Simple.vdomNode
   val vdomElement: PropTypeInfo                 = Simple.vdomElement
   val element: PropTypeInfo                     = Simple.element
-  def stringEnum(values: String*): PropTypeInfo = Enum(Simple.string, values.map(Preset.string))
+  def stringEnum(values: String*): PropTypeInfo = WithPresets(Simple.string, values.map(Preset.string))
 
   private val stringEnumValueRE = "'(.*)'".r
   private val litEnumValueRE    = """(true|false|-?\d+\.\d+|-?\d+)""".r
@@ -155,7 +153,7 @@ object PropTypeInfo       {
       case PropType.ArrayOf(param)     => apply(param).sequence
       case PropType.Union(types)       => Union(types.map(apply))
         case PropType.Enum(base, values) =>
-          Enum(Simple.fromPropType(base),
+          WithPresets(Simple.fromPropType(base),
           values.collect {
             case litEnumValueRE(s)    => Preset.literal(s)
             case stringEnumValueRE(s) => Preset.string(s)
@@ -164,14 +162,14 @@ object PropTypeInfo       {
     }
 
   private implicit val presetCodec: Codec[PropTypeInfo.Preset]     = deriveConfiguredCodec
-  private implicit val enumCodec: Codec[PropTypeInfo.Enum]         = deriveConfiguredCodec
+  private implicit val enumCodec: Codec[PropTypeInfo.WithPresets]  = deriveConfiguredCodec
   private implicit val unionCodec: Codec[PropTypeInfo.Union]       = deriveConfiguredCodec
   private implicit val functionCodec: Codec[PropTypeInfo.Function] = deriveConfiguredCodec
   implicit val encodePropTypeInfo: Encoder[PropTypeInfo]           = Encoder.instance[PropTypeInfo] {
-    case s: Simple   => Simple.encodeSimple(s)
-    case e: Enum     => enumCodec(e)
-    case u: Union    => unionCodec(u)
-    case f: Function => functionCodec(f)
+    case s: Simple      => Simple.encodeSimple(s)
+    case e: WithPresets => enumCodec(e)
+    case u: Union       => unionCodec(u)
+    case f: Function    => functionCodec(f)
   }
   implicit val decodePropTypeInfo: Decoder[PropTypeInfo]           =
     unionCodec

@@ -61,10 +61,10 @@ mui:
         filterOptions:
           type:
             args:
-              - base: jsAny
+              - arrayOf: jsAny
               - jsObject
             result:
-              base: jsAny
+              arrayOf: jsAny
     Breadcrumbs:
       moduleTrait: FacadeModule.ArrayChildren
     ButtonGroup:
@@ -73,6 +73,33 @@ mui:
       props:
         children:
           type: vdomNode
+        classes:
+          type: jsObject
+        component:
+          type: elementType
+        disableGutters:
+          type: bool
+        fixed:
+          type: bool
+        maxWidth:
+          type:
+            base:
+              anyOf:
+                - string
+                - bool
+            presets:
+              - name: xs
+                code: '"xs"'
+              - name: sm
+                code: '"sm"'
+              - name: md
+                code: '"md"'
+              - name: lg
+                code: '"lg"'
+              - name: xl
+                code: '"xl"'
+              - name: "false"
+                code: 'false'
     Dialog:
       props:
         onClose:
