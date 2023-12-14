@@ -26,14 +26,14 @@ object DatePicker extends FacadeModule {
     protected implicit val dateWriter: Writer[LocalDate] =
       d => new js.Date(d.getYear, d.getMonthValue - 1, d.getDayOfMonth)
 
-    val selected = of[Option[LocalDate]]
-    val className = of[String]
-    val isClearable = of[Boolean]
+    val selected         = of[Option[LocalDate]]
+    val className        = of[String]
+    val isClearable      = of[Boolean]
     val showYearDropdown = of[Boolean]
-    val fixedHeight = of[Boolean]
-    val placeholderText = of[String]
-    val dateFormat = of[String]
-    val onChange = of[Option[LocalDate] => Callback]
+    val fixedHeight      = of[Boolean]
+    val placeholderText  = of[String]
+    val dateFormat       = of[String]
+    val onChange         = of[Option[LocalDate] => Callback]
   }
 
   override def mkProps = new Props
@@ -41,6 +41,5 @@ object DatePicker extends FacadeModule {
   def apply(selected: Option[LocalDate])(onChange: Option[LocalDate] => Callback): Factory[Props] =
     factory(_.selected := selected, _.onChange := onChange)
 
-  def apply(snapshot: StateSnapshot[Option[LocalDate]]): Factory[Props] =
-    apply(snapshot.value)(snapshot.setState)
+  def apply(snapshot: StateSnapshot[Option[LocalDate]]): Factory[Props] = apply(snapshot.value)(snapshot.setState)
 }

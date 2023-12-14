@@ -12,9 +12,9 @@ object ReactInputMask extends FacadeModule {
   object raw extends js.Object
 
   class Props extends PropTypes {
-    val mask = of[String]
-    val maskChar = of[String]
-    val formatChars = of[Map[String, String]]
+    val mask           = of[String]
+    val maskChar       = of[String]
+    val formatChars    = of[Map[String, String]]
     val alwaysShowMask = of[Boolean]
   }
 

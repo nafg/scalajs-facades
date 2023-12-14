@@ -15,39 +15,38 @@ object ReactAutocomplete extends FacadeModuleP {
   object raw extends js.Object
 
   class Props[A] extends PropTypes with HasOpaqueReaderWriter[A] {
-    val items = of[Seq[A]]
+    val items        = of[Seq[A]]
     val getItemValue = of[A => String]
-    val renderItem = of[(A, Boolean, js.Object) => VdomElement]
-    val value = of[String]
-    val onChange = of[ReactEventFromInput => Callback]
-    val onSelect = of[(String, A) => Callback]
-    val inputProps = of[js.Object]
-    val renderInput = of[js.Dictionary[js.Any] => VdomElement]
+    val renderItem   = of[(A, Boolean, js.Object) => VdomElement]
+    val value        = of[String]
+    val onChange     = of[ReactEventFromInput => Callback]
+    val onSelect     = of[(String, A) => Callback]
+    val inputProps   = of[js.Object]
+    val renderInput  = of[js.Dictionary[js.Any] => VdomElement]
     val wrapperStyle = of[js.Object]
-    val menuStyle = of[js.Object]
+    val menuStyle    = of[js.Object]
   }
 
   override def mkProps[A] = new Props[A]
 
-  def simple[A](items: Seq[A])
-               (itemLabel: A => String, onSelect: A => Callback, onChange: String => Callback) =
+  def simple[A](items: Seq[A])(itemLabel: A => String, onSelect: A => Callback, onChange: String => Callback) =
     facade.factory(new Props[A])(
-      _.items := items,
+      _.items        := items,
       _.getItemValue := itemLabel,
-      _.renderItem := { (item: A, highlighted: Boolean, _) =>
+      _.renderItem   := { (item: A, highlighted: Boolean, _) =>
         <.div(
           ^.backgroundColor := (if (highlighted) "#ddd" else "transparent"),
           itemLabel(item)
         )
       },
-      _.onChange := (e => onChange(e.target.value)),
-      _.onSelect := ((_, value) => onSelect(value)),
-      _.inputProps := js.Dynamic.literal(className = "form-control"),
-      _.renderInput := { props =>
+      _.onChange     := (e => onChange(e.target.value)),
+      _.onSelect     := ((_, value) => onSelect(value)),
+      _.inputProps   := js.Dynamic.literal(className = "form-control"),
+      _.renderInput  := { props =>
         <.input(^.autoComplete := "never", TagMod.fn(builder => props.foreach { case (k, v) => builder.addAttr(k, v) }))
       },
       _.wrapperStyle := js.Dynamic.literal(),
-      _.menuStyle := js.Dynamic.literal(
+      _.menuStyle    := js.Dynamic.literal(
         borderRadius = "3px",
         boxShadow = "0 2px 12px rgba(0, 0, 0, 0.1)",
         background = "rgba(255, 255, 255, 0.9)",

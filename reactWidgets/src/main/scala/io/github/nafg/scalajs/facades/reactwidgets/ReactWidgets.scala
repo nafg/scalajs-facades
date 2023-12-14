@@ -16,10 +16,10 @@ object ReactWidgets {
   object raw {
     @js.native
     @JSImport("react-widgets/Multiselect", JSImport.Default)
-    object Multiselect extends js.Object
+    object Multiselect  extends js.Object
     @js.native
     @JSImport("react-widgets/Combobox", JSImport.Default)
-    object Combobox extends js.Object
+    object Combobox     extends js.Object
     @js.native
     @JSImport("react-widgets/DropdownList", JSImport.Default)
     object DropdownList extends js.Object
@@ -27,7 +27,7 @@ object ReactWidgets {
 
   abstract class Module[F[_]](val raw: js.Object) extends FacadeModuleP {
     trait CommonProps[A] extends PropTypes with HasOpaqueReaderWriter[A] {
-      val data = of[Seq[A]]
+      val data      = of[Seq[A]]
       val textField = of[A => String]
       def value: PropTypes.Prop[F[A]]
       def onChange: PropTypes.Prop[F[A] => Callback]
@@ -41,42 +41,42 @@ object ReactWidgets {
 
   object Multiselect extends Module[Seq](raw.Multiselect) {
     class Props[A] extends CommonProps[A] {
-      override val value = of
+      override val value    = of
       override val onChange = of
-      val readOnly = of[Boolean]
-      val busy = of[Boolean]
-      val allowCreate = of[Boolean | String]
-      val onCreate = of[String => Callback]
+      val readOnly          = of[Boolean]
+      val busy              = of[Boolean]
+      val allowCreate       = of[Boolean | String]
+      val onCreate          = of[String => Callback]
     }
     override def mkProps[A] = new Props[A]
   }
 
   object Combobox extends Module[Id](raw.Combobox) {
     class Props[A] extends CommonProps[A] {
-      override val value = of
+      override val value    = of
       override val onChange = of
-      val placeholder = of[String]
-      val suggest = of[Boolean]
+      val placeholder       = of[String]
+      val suggest           = of[Boolean]
     }
     override def mkProps[A] = new Props[A]
   }
 
   object DropdownList extends Module[Id](raw.DropdownList) {
     class Props[A] extends CommonProps[A] {
-      override val value = of
+      override val value    = of
       override val onChange = of
-      val onFilter = of[Boolean]
-      val allowCreate = of[Boolean | String]
-      val readOnly = of[Boolean]
-      val busy = of[Boolean]
-      val suggest = of[Boolean]
-      val onSearch = of[String => Callback]
-      val searchTerm = of[String]
-      val filter = of[(A, String) => Int]
+      val onFilter          = of[Boolean]
+      val allowCreate       = of[Boolean | String]
+      val readOnly          = of[Boolean]
+      val busy              = of[Boolean]
+      val suggest           = of[Boolean]
+      val onSearch          = of[String => Callback]
+      val searchTerm        = of[String]
+      val filter            = of[(A, String) => Int]
       val defaultSearchTerm = of[String]
-      val placeholder = of[String]
-      val disabled = of[Seq[A] | Boolean]
-      val onCreate = of[String => Callback]
+      val placeholder       = of[String]
+      val disabled          = of[Seq[A] | Boolean]
+      val onCreate          = of[String => Callback]
     }
     override def mkProps[A] = new Props[A]
   }

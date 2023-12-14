@@ -12,9 +12,9 @@ object PropTypes {
   sealed trait Setting {
     def applyToDict(dict: AnyDict): Unit
   }
-  object Setting {
+  object Setting       {
     class Single(val key: String, val value: js.Any) extends Setting {
-      override def toString = s"""$key: $value"""
+      override def toString                         = s"""$key: $value"""
       override def applyToDict(dict: AnyDict): Unit = {
         val existingValue: js.Any = if (dict.contains(key)) js.Any.wrapDictionary(dict)(key) else js.undefined
         dict(key) = MergeProps.merge(key, existingValue, value)
@@ -52,10 +52,11 @@ object PropTypes {
   }
 
   class Prop[A](val name: String)(implicit writer: Writer[A]) {
-    def :=(value: A): Setting = new Setting.Single(name, writer.write(value))
+    def :=(value: A): Setting          = new Setting.Single(name, writer.write(value))
     def :=?(value: Option[A]): Setting = new Setting.Single(name, value.map(writer.write).getOrElse(js.undefined))
+
     def setAs[B](value: B)(implicit B: Writer[B]): Setting = new Setting.Single(name, B.write(value))
-    def setRaw(value: js.Any): Setting = new Setting.Single(name, value)
+    def setRaw(value: js.Any): Setting                     = new Setting.Single(name, value)
   }
 
   trait WithChildren[C] extends PropTypes {
@@ -70,5 +71,6 @@ trait PropTypes {
   }
 
   def of[A: Writer](implicit name: sourcecode.Name) = new PropTypes.Prop[A](name.value)
+
   val key = of[Key]
 }
