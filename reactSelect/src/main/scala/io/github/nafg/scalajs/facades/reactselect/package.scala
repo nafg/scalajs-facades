@@ -10,7 +10,7 @@ import slinky.readwrite.{Reader, Writer}
 
 package object reactselect {
   type Opt[A] = A | OptGroup[A]
-  implicit def readOptA[A]: Reader[Opt[A]] = _.asInstanceOf[Opt[A]]
+  implicit def readOptA[A]: Reader[Opt[A]]  = _.asInstanceOf[Opt[A]]
   implicit def writeOptA[A]: Writer[Opt[A]] = _.asInstanceOf[js.Object]
 
   def Opt[A](value: A): Opt[A] = value

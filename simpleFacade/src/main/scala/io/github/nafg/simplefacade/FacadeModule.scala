@@ -41,16 +41,17 @@ object FacadeModule {
   trait NodeChildren extends FacadeModule {
     type Props <: PropTypes.WithChildren[VdomNode]
 
-    def childrenToNode(children: Seq[VdomNode]): VdomNode = children match {
-      case Seq()    => EmptyVdom
-      case Seq(one) => one
-      case many     => React.Fragment(many: _*)
-    }
+    def childrenToNode(children: Seq[VdomNode]): VdomNode =
+      children match {
+        case Seq()    => EmptyVdom
+        case Seq(one) => one
+        case many     => React.Fragment(many: _*)
+      }
 
     class ApplyChildren(settings: Setting*) {
       def apply(children: VdomNode*): Factory[Props] = factory(settings: _*)(_.children := childrenToNode(children))
     }
-    object ApplyChildren {
+    object ApplyChildren                    {
       implicit def toVdomElement(applyChildren: ApplyChildren): VdomElement = applyChildren()
     }
   }

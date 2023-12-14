@@ -15,7 +15,7 @@ object Waypoint {
 
   class Props extends PropTypes {
     val bottomOffset = of[String]
-    val onEnter = of[() => Callback]
+    val onEnter      = of[() => Callback]
   }
   val component = Facade(raw).factory(new Props)
 }

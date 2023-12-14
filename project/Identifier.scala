@@ -7,8 +7,8 @@ case class Identifier(value: String) {
 }
 
 object Identifier {
-  val keywords = Set("type", "true", "false")
-  def quotedIfNecessary(value: String) =
+  val keywords                            = Set("type", "true", "false")
+  def quotedIfNecessary(value: String)    =
     if (keywords.contains(value) || value.contains('-') || value.headOption.forall(_.isDigit))
       "`" + value + "`"
     else

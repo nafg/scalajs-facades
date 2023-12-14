@@ -15,17 +15,17 @@ object ReactPhoneNumberInput extends FacadeModule.Simple {
   object raw extends js.Object
 
   trait CommonProps extends PropTypes {
-    val value = of[String]
-    val onChange = of[Option[String] => Callback]
+    val value          = of[String]
+    val onChange       = of[Option[String] => Callback]
     val defaultCountry = of[String]
     val inputComponent = of[ElementType]
   }
 
   class Props extends CommonProps {
-    val autoComplete = of[String]
+    val autoComplete                     = of[String]
     val displayInitialValueAsLocalNumber = of[Boolean]
-    val countries = of[Seq[String]]
-    val numberInputProps = of[js.Object]
+    val countries                        = of[Seq[String]]
+    val numberInputProps                 = of[js.Object]
   }
 
   override def mkProps = new Props
@@ -37,7 +37,7 @@ object ReactPhoneNumberInput extends FacadeModule.Simple {
 
     class Props extends CommonProps {
       val useNationalFormatForDefaultCountryValue = of[Boolean]
-      val country = of[String]
+      val country                                 = of[String]
     }
 
     override def mkProps = new Props
