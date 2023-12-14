@@ -10,7 +10,7 @@ import japgolly.scalajs.react.vdom.{VdomElement, VdomNode}
 
 trait FacadeModuleBase {
   def raw: js.Object
-  lazy val facade = Facade(raw)
+  lazy val facade = Facade(raw, Some(getClass.getName))
 }
 
 trait FacadeModule extends FacadeModuleBase {
