@@ -207,34 +207,51 @@ object FacadeGenerator {
     overrides: Overrides,
     logger: Logger
   ): Seq[File] = {
-    val scalaPackage   = "io.github.nafg.scalajs.facades." + scalaSubPackage
-    val outputDir      = base / scalaPackage.split('.').toList
+    val scalaPackage = "io.github.nafg.scalajs.facades." + scalaSubPackage
+    val outputDir    = base / scalaPackage.split('.').toList
     os.makeDir.all(outputDir)
-    val docgenOutput   = runReactDocGen(base, repoDir, subDir)
+    val docgenOutput = runReactDocGen(base, repoDir, subDir)
     if (BooleanProp.keyExists("docgen.dump").value) {
       println("Result:")
       println(ujson.read(docgenOutput).render(indent = 2))
       println()
     }
-    val componentInfos = ujson.read(docgenOutput).obj.values.collect {
+
+    val readComponentInfos = ujson.read(docgenOutput).obj.values.toSeq.collect {
       case value if Set("props", "displayName").forall(value.obj.contains) =>
         val componentInfo = ComponentInfo.read(value.obj)
         overrides.getPropInfoOverrides(componentInfo).foldLeft(componentInfo) {
           case (componentInfo, (propName, Overrides.PropInfoOverride(typ, required))) =>
-            componentInfo.withProp(
-              componentInfo.propsMap.get(propName) match {
-                case None           => PropInfo(propName, typ.getOrElse(PropTypeInfo.jsAny))
-                case Some(propInfo) =>
-                  propInfo.copy(
-                    required = required.getOrElse(propInfo.required),
-                    `type` = typ.getOrElse(propInfo.`type`)
-                  )
+            componentInfo.propsMap.get(propName)
+              .map { existingPropInfo =>
+                existingPropInfo.copy(
+                  required = required.getOrElse(existingPropInfo.required),
+                  `type` = typ.getOrElse(existingPropInfo.`type`)
+                )
               }
-            )
+              .orElse(typ.map(propTypeInfo => PropInfo(propName, propTypeInfo)))
+              .fold(componentInfo)(componentInfo.withProp)
         }
     }
 
-    for (componentInfo <- componentInfos.toSeq) yield processComponent(
+    val componentInfos =
+      readComponentInfos ++
+        (overrides.components -- readComponentInfos.map(_.name).toSet).map { case (name, overrides) =>
+          ComponentInfo(
+            name = name,
+            description = "",
+            propInfos = overrides.props.toSeq.map { case (propName, Overrides.PropInfoOverride(typ, required)) =>
+              PropInfo(
+                name = propName,
+                identifier = Identifier(propName),
+                `type` = typ.getOrElse(PropTypeInfo.jsAny),
+                required = required.getOrElse(false)
+              )
+            }
+          )
+        }
+
+    for (componentInfo <- componentInfos) yield processComponent(
       info = componentInfo,
       scalaPackage = scalaPackage,
       jsPackage = jsPackage,

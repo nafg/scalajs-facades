@@ -9,17 +9,23 @@ case class ComponentInfo(name: String, description: String, propsMap: SortedMap[
   lazy val maybeChildrenProp       = propsMap.get("children")
   def withProp(propInfo: PropInfo) = copy(propsMap = propsMap + (propInfo.name -> propInfo))
 }
-object ComponentInfo                                                                               {
+
+object ComponentInfo {
   private def makePropsMap(infos: Seq[PropInfo]) = SortedMap(infos.map(p => p.name -> p)*)
 
-  def read(jsonObject: collection.Map[String, ujson.Value]) = {
-    val propInfos =
-      PropInfo.readAll(jsonObject("props").obj - "key")
-        .filterNot(_.description.contains("@ignore"))
+  def apply(name: String, description: String, propInfos: Seq[PropInfo]): ComponentInfo =
     ComponentInfo(
-      name = jsonObject("displayName").str,
-      description = jsonObject("description").str,
+      name = name,
+      description = description,
       propsMap = makePropsMap(propInfos)
     )
-  }
+
+  def read(jsonObject: collection.Map[String, ujson.Value]) =
+    apply(
+      name = jsonObject("displayName").str,
+      description = jsonObject("description").str,
+      propInfos =
+        PropInfo.readAll(jsonObject("props").obj - "key")
+          .filterNot(_.description.contains("@ignore"))
+    )
 }
