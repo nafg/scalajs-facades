@@ -7,13 +7,13 @@ import io.circe.generic.extras.Configuration.kebabCaseTransformation
 import os.{Path, ProcessOutput}
 import sbt.Cache
 import sbt.util.CacheImplicits.*
-import sbt.util.CacheStore
+import sbt.util.{CacheStore, Logger}
 import sjsonnew.{IsoString, JsonFormat}
 
 
 object FacadeGenerator {
-  implicit val isoStringPath: IsoString[Path]                                                          = IsoString.iso[os.Path](_.toString(), os.Path(_))
-
+  implicit val isoStringPath: IsoString[Path]                                                          =
+    IsoString.iso[os.Path](_.toString(), os.Path(_))
   private def comment(str: String, indent: String)                                                     =
     str.trim.linesIterator.toVector match {
       case Seq()        => ""
@@ -35,7 +35,8 @@ object FacadeGenerator {
     val cache          = Cache.cached[String, A](cacheStore)(_ => f)
     cache(key)
   }
-  private def runReactDocGen(base: Path, repoDir: Path, subDir: String)                                =
+
+  private def runReactDocGen(base: Path, repoDir: Path, subDir: String) =
     doCached(CacheStore((base / "docgen-cache.json").toIO), repoDir, subDir) {
       val docGenOutputFile   = base / "react-docgen.json"
       println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
@@ -71,16 +72,21 @@ object FacadeGenerator {
       println()
       os.read(docGenOutputFile)
     }
+
   private def processComponent(
     info: ComponentInfo,
     scalaPackage: String,
     jsPackage: String,
     outputFile: os.Path,
-    componentCodeGenInfoTransformer: ComponentCodeGenInfo => ComponentCodeGenInfo
+    moduleTraitsOverride: Option[String],
+    logger: Logger
   ) = {
-    print("Processing " + info.name + "... ")
-    val imports                  = info.props.flatMap(_.propTypeInfo.imports).distinct.sorted
-    val genInfo                  = componentCodeGenInfoTransformer(ComponentCodeGenInfo(info))
+    logger.debug("Processing " + info.name + "... ")
+    val imports                  = info.props.flatMap(_.`type`.imports).distinct.sorted
+    val genInfo                  =
+      moduleTraitsOverride.foldLeft(ComponentCodeGenInfo(info)) { (info, moduleTrait) =>
+        info.copy(moduleTrait = moduleTrait)
+      }
     val requiredNonChildrenProps = info.props.filter(i => i.required && !info.maybeChildrenProp.contains(i))
 
     def method(name: String, params: Seq[(String, String)], resultType: String)(body: String) =
@@ -90,12 +96,12 @@ object FacadeGenerator {
     val factoryMethods                        = requiredNonChildrenProps match {
       case Seq() => ""
       case infos =>
-        def mkParams(propInfos: Seq[PropInfo]): Seq[(String, String)]                                =
-          propInfos.map(i => i.ident.toString -> i.propTypeInfo.code)
-        def mkSettingsExprs[A](xs: Seq[A])(ident: A => Identifier, code: A => String)                =
+        def mkParams(propInfos: Seq[PropInfo]): Seq[(String, String)]                 =
+          propInfos.map(i => i.identifier.toString -> i.`type`.code)
+        def mkSettingsExprs[A](xs: Seq[A])(ident: A => Identifier, code: A => String) =
           xs.map(x => s"_.${ident(x)} := ${code(x)}")
 
-        val settingsVarArgParam                                                                      = "settings" -> "Setting*"
+        val settingsVarArgParam = "settings" -> "Setting*"
         def mkFactoryMethod(name: String, params: Seq[(String, String)])(settingsExprs: Seq[String]) = {
           val settingsExpr = settingsExprs.mkString("Seq[Setting](", ", ", ") ++ settings: _*")
           if (info.maybeChildrenProp.isDefined)
@@ -103,22 +109,23 @@ object FacadeGenerator {
           else
             method(name, params :+ settingsVarArgParam, "Factory[Props]")(s"factory($settingsExpr)")
         }
-        val applyMethod                                                                              =
+
+        val applyMethod           =
           mkFactoryMethod("apply", mkParams(infos))(
-            mkSettingsExprs(infos)(_.ident, _.ident.toString)
+            mkSettingsExprs(infos)(_.identifier, _.identifier.toString)
           )
 
-        val (withPresets, others)                                                                    = infos.partition(_.propTypeInfo.presets.nonEmpty)
+        val (withPresets, others) = infos.partition(_.`type`.presets.nonEmpty)
 
-        val presetMethods                                                                            =
+        val presetMethods         =
           if (withPresets.isEmpty) Nil
           else
-            withPresets.toList.traverse(_.propTypeInfo.presets.toList).map {
+            withPresets.toList.traverse(_.`type`.presets.toList).map {
               case first +: rest =>
                 val name = first.name.value + rest.map(_.name.value.capitalize).mkString
                 mkFactoryMethod(name, mkParams(others))(
-                  mkSettingsExprs(infos.zip(first +: rest))(_._1.ident, _._2.code) ++
-                    mkSettingsExprs(others)(_.ident, _.ident.toString)
+                  mkSettingsExprs(infos.zip(first +: rest))(_._1.identifier, _._2.code) ++
+                    mkSettingsExprs(others)(_.identifier, _.identifier.toString)
                 )
             }
         (applyMethod +: presetMethods).mkString("\n\n")
@@ -131,32 +138,33 @@ object FacadeGenerator {
 
     val (propTypesTrait, propTypesTraitParam) =
       info.maybeChildrenProp
-        .map(i => "PropTypes.WithChildren" -> Some(i.propTypeInfo.code))
+        .map(i => "PropTypes.WithChildren" -> Some(i.`type`.code))
         .getOrElse("PropTypes" -> None)
 
     val propDefs                              =
-      info.props.map { case PropInfo(_, ident, PropTypeInfo(typeCode, _, presets), description, _) =>
-        s"${comment(description, "    ")}\n" +
-          (if (presets.isEmpty)
-             s"def $ident = of[$typeCode]"
-           else {
-             s"""object $ident extends PropTypes.Prop[$typeCode]("$ident") {
+      info.props.map { propInfo =>
+        def typeCode = propInfo.`type`.code
+        s"${comment(propInfo.description, "    ")}\n" +
+          (if (propInfo.`type`.presets.isEmpty)
+             s"def ${propInfo.identifier} = of[$typeCode]"
+           else
+             s"""object ${propInfo.identifier} extends PropTypes.Prop[$typeCode]("${propInfo.identifier}") {
                |${
-                 presets
+                 propInfo.`type`.presets
                    .map { case PropTypeInfo.Preset(name, presetCode) =>
                      s"  val $name = this := $presetCode.asInstanceOf[$typeCode]"
                    }
                    .mkString("\n")
                }
-               |}""".stripMargin
-           })
+               |}""".stripMargin)
             .linesWithSeparators.map("    " + _).mkString
       }
 
     val componentDescription                  =
       s"View original docs online: https://mui.com/api/${kebabCaseTransformation(info.name)}/\n\n" +
         info.description
-
+    val factoryImportPart                     =
+      if (factoryMethods.isEmpty || info.maybeChildrenProp.isDefined) "" else "Factory, "
     val code                                  =
       s"""|package $scalaPackage
           |
@@ -164,10 +172,7 @@ object FacadeGenerator {
           |import scala.scalajs.js
           |import scala.scalajs.js.annotation.JSImport
           |import japgolly.scalajs.react.facade.React.ElementType
-          |import io.github.nafg.simplefacade.{FacadeModule, ${if (
-           factoryMethods.isEmpty || info.maybeChildrenProp.isDefined
-         ) ""
-         else "Factory, "}PropTypes}
+          |import io.github.nafg.simplefacade.{FacadeModule, ${factoryImportPart}PropTypes}
           |
           |
           |${comment(componentDescription, "")}
@@ -189,66 +194,53 @@ object FacadeGenerator {
           |""".stripMargin
 
     os.write.over(outputFile, code)
-    println("wrote " + outputFile.toString())
+    logger.debug("Wrote " + outputFile.toString())
     outputFile
   }
 
-  private case class ProcessComponentsInfo(
-    componentInfos: Seq[ComponentInfo],
-    scalaPackage: String,
-    jsPackage: String,
-    outputDir: os.Path)
-
-  private implicit val processComponentsInfoJF: JsonFormat[ProcessComponentsInfo] =
-    caseClass(ProcessComponentsInfo.apply _, ProcessComponentsInfo.unapply _)(
-      "componentInfos",
-      "scalaPackage",
-      "jsPackage",
-      "outputDir"
-    )
-  private def processComponents(
-    base: os.Path,
-    info: ProcessComponentsInfo,
-    componentCodeGenInfoTransformer: ComponentCodeGenInfo => ComponentCodeGenInfo
-  ): Seq[os.Path] = {
-    val cacheFile          = base / "component-info-cache.json"
-    val componentInfoCache =
-      Cache.cached[ProcessComponentsInfo, Seq[Path]](cacheFile.toIO) {
-        case ProcessComponentsInfo(componentInfos, scalaPackage, jsPackage, outputDir) =>
-          for (info <- componentInfos) yield {
-            val outputFile = outputDir / (info.name + ".scala")
-            processComponent(info, scalaPackage, jsPackage, outputFile, componentCodeGenInfoTransformer)
-          }
-      }
-    componentInfoCache(info)
-  }
   def run(
     base: os.Path,
     repoDir: os.Path,
     subDir: String,
     jsPackage: String,
     scalaSubPackage: String,
-    propInfoTransformer: (ComponentInfo, PropInfo) => PropInfo,
-    componentInfoTransformer: ComponentInfo => ComponentInfo,
-    componentCodeGenInfoTransformer: ComponentCodeGenInfo => ComponentCodeGenInfo
+    overrides: Overrides,
+    logger: Logger
   ): Seq[File] = {
-    val scalaPackage          = "io.github.nafg.scalajs.facades." + scalaSubPackage
-    val outputDir             = base / scalaPackage.split('.').toList
+    val scalaPackage   = "io.github.nafg.scalajs.facades." + scalaSubPackage
+    val outputDir      = base / scalaPackage.split('.').toList
     os.makeDir.all(outputDir)
-    val docgenOutput          = runReactDocGen(base, repoDir, subDir)
+    val docgenOutput   = runReactDocGen(base, repoDir, subDir)
     if (BooleanProp.keyExists("docgen.dump").value) {
       println("Result:")
       println(ujson.read(docgenOutput).render(indent = 2))
       println()
     }
-    val componentInfos        = ujson.read(docgenOutput).obj.values.collect {
+    val componentInfos = ujson.read(docgenOutput).obj.values.collect {
       case value if Set("props", "displayName").forall(value.obj.contains) =>
-        val info0 = ComponentInfo.read(value.obj)
-        componentInfoTransformer(info0)
-          .modProps(_.map(propInfoTransformer(info0, _)).sortBy(_.name))
+        val componentInfo = ComponentInfo.read(value.obj)
+        overrides.getPropInfoOverrides(componentInfo).foldLeft(componentInfo) {
+          case (componentInfo, (propName, Overrides.PropInfoOverride(typ, required))) =>
+            componentInfo.withProp(
+              componentInfo.propsMap.get(propName) match {
+                case None           => PropInfo(propName, typ.getOrElse(PropTypeInfo.jsAny))
+                case Some(propInfo) =>
+                  propInfo.copy(
+                    required = required.getOrElse(propInfo.required),
+                    `type` = typ.getOrElse(propInfo.`type`)
+                  )
+              }
+            )
+        }
     }
-    val processComponentsInfo = ProcessComponentsInfo(componentInfos.toSeq, scalaPackage, jsPackage, outputDir)
-    processComponents(base, processComponentsInfo, componentCodeGenInfoTransformer)
-      .map(_.toIO)
+
+    for (componentInfo <- componentInfos.toSeq) yield processComponent(
+      info = componentInfo,
+      scalaPackage = scalaPackage,
+      jsPackage = jsPackage,
+      outputFile = outputDir / (componentInfo.name + ".scala"),
+      moduleTraitsOverride = overrides.components.get(componentInfo.name).flatMap(_.moduleTrait),
+      logger = logger
+    ).toIO
   }
 }

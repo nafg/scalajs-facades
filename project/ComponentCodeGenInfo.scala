@@ -2,9 +2,9 @@ case class ComponentCodeGenInfo(componentInfo: ComponentInfo, moduleTrait: Strin
 object ComponentCodeGenInfo {
   def apply(componentInfo: ComponentInfo): ComponentCodeGenInfo = {
     val (moduleTrait, moduleTraitParam) = componentInfo.maybeChildrenProp match {
-      case Some(i) if i.propTypeInfo.code == "VdomNode" => "FacadeModule.NodeChildren" -> None
-      case Some(i)                                      => "FacadeModule.ChildrenOf"   -> Some(i.propTypeInfo.code)
-      case _                                            => "FacadeModule"              -> None
+      case Some(i) if i.`type`.code == "VdomNode" => "FacadeModule.NodeChildren" -> None
+      case Some(i)                                => "FacadeModule.ChildrenOf"   -> Some(i.`type`.code)
+      case _                                      => "FacadeModule"              -> None
     }
     ComponentCodeGenInfo(
       componentInfo = componentInfo,

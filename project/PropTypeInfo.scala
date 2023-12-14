@@ -1,56 +1,181 @@
-import sjsonnew.BasicJsonProtocol._
-import sjsonnew.JsonFormat
+import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.semiauto.deriveConfiguredCodec
+import io.circe.syntax.EncoderOps
+import io.circe.{Codec, Decoder, Encoder}
 
 
-case class PropTypeInfo(code: String, imports: Set[String] = Set.empty, presets: Seq[PropTypeInfo.Preset] = Nil)
+sealed trait PropTypeInfo {
+  def code: String
+  def safeCode: String
+  def imports: Set[String]
+  def presets: Seq[PropTypeInfo.Preset]
 
-object PropTypeInfo {
-  case class Preset(name: Identifier, code: String)
+  def =>:(unit: Unit)                                       = PropTypeInfo.Function(Nil, this)
+  def =>:(arg: PropTypeInfo)                                = PropTypeInfo.Function(List(arg), this)
+  def =>:(args: (PropTypeInfo, PropTypeInfo))               = PropTypeInfo.Function(List(args._1, args._2), this)
+  def =>:(args: (PropTypeInfo, PropTypeInfo, PropTypeInfo)) =
+    PropTypeInfo.Function(List(args._1, args._2, args._3), this)
 
-  private val stringEnumValueRE               = "'(.*)'".r
-  private val litEnumValueRE                  = """(true|false|-?\d+\.\d+|-?\d+)""".r
-  def apply(propType: PropType): PropTypeInfo = {
-    def loop(propType: PropType): PropTypeInfo =
-      propType match {
-        case PropType.Any                => PropTypeInfo("js.Any")
-        case PropType.Bool               => PropTypeInfo("Boolean")
-        case PropType.Element            => PropTypeInfo("VdomElement", CommonImports.VdomElement)
-        case PropType.ElementType        => PropTypeInfo("ElementType", CommonImports.ElementType)
-        case PropType.Func               => PropTypeInfo("(js.Any => js.Any)")
-        case PropType.Node               => PropTypeInfo("VdomNode", CommonImports.VdomNode)
-        case PropType.Number             => PropTypeInfo("Double")
-        case PropType.Object             => PropTypeInfo("js.Object")
-        case PropType.String             => PropTypeInfo("String")
-        case PropType.ArrayOf(param)     =>
-          val PropTypeInfo(paramCode, paramImports, _) = loop(param)
-          PropTypeInfo(s"Seq[$paramCode]", paramImports)
-        case PropType.Union(types)       =>
-          val (paramsImports, paramsCodes, presets) =
-            types.map(loop).map(pti => (pti.imports, pti.code, pti.presets)).unzip3
-          PropTypeInfo(
-            code = paramsCodes.mkString("(", " | ", ")"),
-            imports = paramsImports.flatten.toSet ++ CommonImports.|,
-            presets = presets.flatten
-          )
-        case PropType.Enum(base, values) =>
-          val res = loop(base)
-          res.copy(presets =
-            res.presets ++
-              values.collect {
-                case litEnumValueRE(s)    => Preset(Identifier(s), s)
-                case stringEnumValueRE(s) => Preset(Identifier(s), '"' + s + '"')
-              }
-          )
-      }
-    def unwrap(s: String)                      =
-      if (s.headOption.contains('(') && s.lastOption.contains(')'))
-        s.drop(1).dropRight(1)
-      else
-        s
-    val propTypeInfo                           = loop(propType)
-    propTypeInfo.copy(code = unwrap(propTypeInfo.code))
+  def sequence: PropTypeInfo = PropTypeInfo.Simple.Sequence(this)
+
+  def |(that: PropTypeInfo) = PropTypeInfo.Union(Seq(this, that)).flatten
+}
+object PropTypeInfo       {
+  private implicit val circeConfig =
+    Configuration.default.withDefaults.copy(transformConstructorNames = s => s.head.toLower + s.tail)
+
+  sealed abstract class Simple private (override val code: String, override val imports: Set[String] = Set.empty)
+      extends PropTypeInfo {
+    override def safeCode             = code
+    override def presets: Seq[Preset] = Nil
   }
-  implicit val presetJF: JsonFormat[Preset]   = caseClass(Preset.apply _, Preset.unapply _)("name", "code")
-  implicit val rw: JsonFormat[PropTypeInfo]   =
-    caseClass(new PropTypeInfo(_, _, _), unapply)("code", "imports", "presets")
+  private object Simple    {
+    case object bool         extends Simple("Boolean")
+    case object int          extends Simple("Int")
+    case object double       extends Simple("Double")
+    case object string       extends Simple("String")
+    case object jsAny        extends Simple("js.Any")
+    case object jsObject     extends Simple("js.Object")
+    case object jsDictionary extends Simple("js.Dictionary[js.Any]")
+    case object callback     extends Simple("Callback", CommonImports.Callback)
+    case object elementType  extends Simple("ElementType", CommonImports.ElementType)
+    case object element      extends Simple("Element", CommonImports.Element)
+    case object vdomNode     extends Simple("VdomNode", CommonImports.VdomNode)
+    case object vdomElement  extends Simple("VdomElement", CommonImports.VdomElement)
+
+    lazy val values = Seq(
+      bool,
+      int,
+      double,
+      string,
+      jsAny,
+      jsObject,
+      jsDictionary,
+      callback,
+      elementType,
+      element,
+      vdomNode,
+      vdomElement
+    )
+
+    case class Sequence(base: PropTypeInfo) extends Simple(s"Seq[${base.safeCode /* temp */}]", base.imports)
+    object Sequence {
+      implicit lazy val codecSequence: Codec[Sequence] = deriveConfiguredCodec[Sequence]
+    }
+
+    case class React(name: String) extends Simple(name, Set(CommonImports.react(name)))
+
+    def fromPropType(simple: PropType.Simple): Simple =
+      simple match {
+        case PropType.Any         => jsAny
+        case PropType.Bool        => bool
+        case PropType.Element     => vdomElement
+        case PropType.ElementType => elementType
+        case PropType.Node        => vdomNode
+        case PropType.Number      => double
+        case PropType.Object      => jsObject
+        case PropType.String      => string
+      }
+
+    implicit lazy val encodeSimple: Encoder[Simple] = Encoder.instance {
+      case s @ Sequence(base) => Sequence.codecSequence(s)
+      case React(name)        => name.asJson
+      case s                  => s.toString.asJson
+    }
+
+    implicit val decodeSimple: Decoder[Simple] =
+      Sequence.codecSequence.or {
+        Decoder.decodeString.map { str =>
+          values.find(_.toString == str)
+            .getOrElse(React(str))
+        }
+      }
+
+//    implicit val simpleCodec: Codec[PropTypeInfo.Simple] = Codec.from(Simple.decodeSimple, Simple.encodeSimple)
+  }
+  case class Function(args: Seq[PropTypeInfo], result: PropTypeInfo) extends PropTypeInfo {
+    override def code     =
+      args match {
+        case Seq(one) => s"${one.code} => ${result.safeCode}"
+        case _        => s"(${args.map(_.code).mkString(", ")}) => ${result.safeCode}"
+      }
+    override def safeCode = s"($code)"
+    override def imports  = args.flatMap(_.imports).toSet ++ result.imports
+    override def presets  = Nil
+  }
+  case class Union(anyOf: Seq[PropTypeInfo]) extends PropTypeInfo {
+    override def code                   = anyOf.map(_.safeCode).mkString(" | ")
+    override def safeCode               = s"($code)"
+    override def imports                = anyOf.flatMap(_.imports).toSet ++ CommonImports.|
+    override def presets                = anyOf.flatMap(_.presets)
+    def flatten                         =
+      copy(anyOf =
+        anyOf
+          .flatMap {
+            case Union(types) => types
+            case other        => Seq(other)
+          }
+      )
+    override def sequence: PropTypeInfo = Simple.Sequence(this)
+  }
+  case class Enum(base: Simple, override val presets: Seq[Preset]) extends PropTypeInfo {
+    override def code     = base.code
+    override def safeCode = base.safeCode
+    override def imports  = base.imports
+  }
+
+  case class Preset(name: Identifier, code: String)
+  object Preset {
+    def literal(value: String) = Preset(Identifier(value), value)
+    def string(value: String)  = Preset(Identifier(value), '"' + value + '"')
+  }
+
+  val int: PropTypeInfo                         = Simple.int
+  def string: PropTypeInfo                      = Simple.string
+  val jsObject: PropTypeInfo                    = Simple.jsObject
+  val jsAny: PropTypeInfo                       = Simple.jsAny
+  val jsAnyDict: PropTypeInfo                   = Simple.jsDictionary
+  private def react(name: String): PropTypeInfo = Simple.React(name)
+  val reactEvent                                = react("ReactEvent")
+  val reactEventFromInput                       = react("ReactEventFromInput")
+  val reactMouseEventFromHtml                   = react("ReactMouseEventFromHtml")
+  val callback: PropTypeInfo                    = Simple.callback
+  val vdomNode: PropTypeInfo                    = Simple.vdomNode
+  val vdomElement: PropTypeInfo                 = Simple.vdomElement
+  val element: PropTypeInfo                     = Simple.element
+  def stringEnum(values: String*): PropTypeInfo = Enum(Simple.string, values.map(Preset.string))
+
+  private val stringEnumValueRE = "'(.*)'".r
+  private val litEnumValueRE    = """(true|false|-?\d+\.\d+|-?\d+)""".r
+
+  def apply(propType: PropType): PropTypeInfo =
+    propType match {
+      case simple: PropType.Simple     => Simple.fromPropType(simple)
+        case PropType.Func               => jsAny =>: jsAny
+      case PropType.ArrayOf(param)     => apply(param).sequence
+      case PropType.Union(types)       => Union(types.map(apply))
+        case PropType.Enum(base, values) =>
+          Enum(Simple.fromPropType(base),
+          values.collect {
+            case litEnumValueRE(s)    => Preset.literal(s)
+            case stringEnumValueRE(s) => Preset.string(s)
+          }
+        )
+    }
+
+  private implicit val presetCodec: Codec[PropTypeInfo.Preset]     = deriveConfiguredCodec
+  private implicit val enumCodec: Codec[PropTypeInfo.Enum]         = deriveConfiguredCodec
+  private implicit val unionCodec: Codec[PropTypeInfo.Union]       = deriveConfiguredCodec
+  private implicit val functionCodec: Codec[PropTypeInfo.Function] = deriveConfiguredCodec
+  implicit val encodePropTypeInfo: Encoder[PropTypeInfo]           = Encoder.instance[PropTypeInfo] {
+    case s: Simple   => Simple.encodeSimple(s)
+    case e: Enum     => enumCodec(e)
+    case u: Union    => unionCodec(u)
+    case f: Function => functionCodec(f)
+  }
+  implicit val decodePropTypeInfo: Decoder[PropTypeInfo]           =
+    unionCodec
+      .or(enumCodec.map(identity[PropTypeInfo]))
+      .or(functionCodec.map(identity[PropTypeInfo]))
+      .or(Simple.decodeSimple.map(identity[PropTypeInfo]))
 }
