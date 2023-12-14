@@ -2,9 +2,12 @@ package io.github.nafg.simplefacade
 
 import scala.language.{dynamics, implicitConversions}
 import scala.scalajs.js
+import scala.scalajs.js.|
+
 import japgolly.scalajs.react.Key
 import japgolly.scalajs.react.vdom.TagMod
 import io.github.nafg.simplefacade.MergeProps.AnyDict
+
 import slinky.readwrite.Writer
 
 
@@ -21,7 +24,8 @@ object PropTypes {
       }
     }
 
-    implicit class FromBooleanProp(prop: Prop[Boolean]) extends Single(prop.name, true)
+    implicit class FromBooleanProp[A](prop: Prop[A])(implicit ev: |.Evidence[Boolean, A])
+        extends Single(prop.name, true)
 
     implicit class Multiple(val settings: Iterable[Setting]) extends Setting {
       override def applyToDict(dict: AnyDict): Unit = settings.foreach(_.applyToDict(dict))
