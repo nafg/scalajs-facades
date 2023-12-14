@@ -9,7 +9,11 @@ case class Identifier(value: String) {
 object Identifier {
   val keywords                            = Set("type", "true", "false")
   def quotedIfNecessary(value: String)    =
-    if (keywords.contains(value) || value.contains('-') || value.headOption.forall(_.isDigit))
+    if (
+      keywords.contains(value) ||
+      value.headOption.exists(!Character.isJavaIdentifierStart(_)) ||
+      value.exists(!Character.isJavaIdentifierPart(_))
+    )
       "`" + value + "`"
     else
       value
