@@ -1,5 +1,3 @@
-import java.io.FileReader
-
 import _root_.io.circe.yaml.v12.Parser
 import cats.data.Validated
 import cats.implicits.toShow
@@ -22,19 +20,12 @@ object FacadeGeneratorPlugin extends AutoPlugin {
         runYarnInstall.value
         val logger          = streams.value.log
         val overrides       =
-          Parser.default.parse(new FileReader("overrides.yml")).toTry.get
-            .asAccumulating[Map[String, Overrides]] match {
+          Parser.default.decodeAccumulating[Map[String, Overrides]](IO.read(file("overrides.yml"))) match {
             case Validated.Invalid(errors) =>
               errors.toList.foreach(failure => logger.error(failure.show))
               sys.error(errors.toString)
-            case Validated.Valid(map)      => map(scalaSubPackage)
+            case Validated.Valid(map)      => map(scalaSubPackage).applyExtends
           }
-        val overridesString = pprint.apply(overrides).render
-        logger.info(
-          overridesString.linesWithSeparators
-            .map(s"[${scalaSubPackage}] " + _)
-            .mkString
-        )
         FacadeGenerator.run(
           base = os.Path((Compile / sourceManaged).value),
           repoDir = reactDocGenDir.value,
@@ -76,7 +67,6 @@ object FacadeGeneratorPlugin extends AutoPlugin {
             .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
         }
       },
-      watchSources += file("overrides.yml"),
       Compile / packageSrc / mappings ++= {
         val base  = (Compile / sourceManaged).value
         val files = (Compile / managedSources).value

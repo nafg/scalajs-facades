@@ -151,8 +151,8 @@ object FacadeGenerator {
              s"""object ${propInfo.identifier} extends PropTypes.Prop[$typeCode]("${propInfo.identifier}") {
                |${
                  propInfo.`type`.presets
-                   .map { case PropTypeInfo.Preset(name, presetCode) =>
-                     s"  val $name = this := $presetCode.asInstanceOf[$typeCode]"
+                   .map { value =>
+                     s"  val ${value.name} = this := ${value.code}.asInstanceOf[$typeCode]"
                    }
                    .mkString("\n")
                }
@@ -219,24 +219,53 @@ object FacadeGenerator {
 
     val readComponentInfos = ujson.read(docgenOutput).obj.values.toSeq.collect {
       case value if Set("props", "displayName").forall(value.obj.contains) =>
-        val componentInfo = ComponentInfo.read(value.obj)
-        overrides.getPropInfoOverrides(componentInfo).foldLeft(componentInfo) {
-          case (componentInfo, (propName, Overrides.PropInfoOverride(typ, required))) =>
-            componentInfo.propsMap.get(propName)
-              .map { existingPropInfo =>
-                existingPropInfo.copy(
-                  required = required.getOrElse(existingPropInfo.required),
-                  `type` = typ.getOrElse(existingPropInfo.`type`)
-                )
-              }
-              .orElse(typ.map(propTypeInfo => PropInfo(propName, propTypeInfo)))
-              .fold(componentInfo)(componentInfo.withProp)
-        }
+        ComponentInfo.read(value.obj)
     }
 
-    val componentInfos =
-      readComponentInfos ++
-        (overrides.components -- readComponentInfos.map(_.name).toSet).map { case (name, overrides) =>
+    def applyExtends(componentInfo: ComponentInfo): ComponentInfo = {
+      val name = componentInfo.name
+      overrides.get(name).`extends` match {
+        case None             =>
+          logger.info("No extends for " + name)
+          componentInfo
+        case Some(parentName) =>
+          readComponentInfos.find(_.name == parentName)
+            .fold(componentInfo) { parent =>
+              logger.info("Extending " + name + " with " + parentName)
+              val parentExtended = applyExtends(parent)
+              val map            = parentExtended.propsMap ++ componentInfo.propsMap
+              logger.info("Added props " + (map.keySet -- parentExtended.propsMap.keySet).mkString(", ") + " to " +
+                name)
+              componentInfo.copy(propsMap = map)
+            }
+      }
+    }
+
+    val inheritedExisting = readComponentInfos.map { componentInfo =>
+      logger.info(componentInfo.name)
+      applyExtends(componentInfo)
+    }
+
+    val overriddenExisting = inheritedExisting.map { componentInfo =>
+      overrides.getPropInfoOverrides(componentInfo).foldLeft(componentInfo) {
+        case (componentInfo, (propName, Overrides.PropInfoOverride(typ, required))) =>
+          componentInfo.propsMap.get(propName)
+            .map { existingPropInfo =>
+              existingPropInfo.copy(
+                required = required.getOrElse(existingPropInfo.required),
+                `type` = typ.getOrElse(existingPropInfo.`type`)
+              )
+            }
+            .orElse(typ.map(propTypeInfo => PropInfo(propName, propTypeInfo)))
+            .fold(componentInfo)(componentInfo.withProp)
+      }
+    }
+
+    val readComponentNames = overriddenExisting.map(_.name).toSet
+
+    val addedComponentInfos =
+      (overrides.components -- readComponentNames).collect {
+        case (name, overrides) if name.headOption.exists(_.isLetter) =>
           ComponentInfo(
             name = name,
             description = "",
@@ -249,7 +278,9 @@ object FacadeGenerator {
               )
             }
           )
-        }
+      }
+
+    val componentInfos = overriddenExisting ++ addedComponentInfos
 
     for (componentInfo <- componentInfos) yield processComponent(
       info = componentInfo,

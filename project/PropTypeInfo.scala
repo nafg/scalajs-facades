@@ -18,7 +18,7 @@ sealed trait PropTypeInfo {
 
   def sequence: PropTypeInfo = PropTypeInfo.Simple.Sequence(this)
 
-  def |(that: PropTypeInfo) = PropTypeInfo.Union(Seq(this, that)).flatten
+  def |(that: PropTypeInfo) = PropTypeInfo.Union(Seq(this, that)).simplify
 }
 object PropTypeInfo       {
   private implicit val circeConfig =
@@ -102,11 +102,11 @@ object PropTypeInfo       {
     override def presets  = Nil
   }
   case class Union(anyOf: Seq[PropTypeInfo]) extends PropTypeInfo {
-    override def code                   = anyOf.map(_.safeCode).mkString(" | ")
+    override def code                   = anyOf.map(_.safeCode).distinct.mkString(" | ")
     override def safeCode               = s"($code)"
     override def imports                = anyOf.flatMap(_.imports).toSet ++ CommonImports.|
     override def presets                = anyOf.flatMap(_.presets)
-    def flatten                         =
+    def simplify                        =
       copy(anyOf =
         anyOf
           .flatMap {
@@ -122,10 +122,20 @@ object PropTypeInfo       {
     override def imports  = base.imports
   }
 
-  case class Preset(name: Identifier, code: String)
+  sealed abstract class Preset(val name: Identifier, val code: String)
   object Preset {
-    def literal(value: String) = Preset(Identifier(value), value)
-    def string(value: String)  = Preset(Identifier(value), '"' + value + '"')
+    case class Unquoted(value: String) extends Preset(Identifier(value), value)
+    case class Quoted(string: String)  extends Preset(Identifier(string), '"' + string + '"')
+
+    implicit val codecQuoted: Codec[Quoted]    = deriveConfiguredCodec
+    implicit val encodePreset: Encoder[Preset] = Encoder.instance[Preset] {
+      case u: Unquoted => u.value.asJson
+      case q: Quoted   => q.asJson
+    }
+    implicit val decodePreset: Decoder[Preset] =
+      codecQuoted
+        .or(Decoder.decodeString.map[Preset](Unquoted))
+        .or(Decoder.decodeBoolean.map(b => Unquoted(b.toString)))
   }
 
   val int: PropTypeInfo                         = Simple.int
@@ -141,7 +151,6 @@ object PropTypeInfo       {
   val vdomNode: PropTypeInfo                    = Simple.vdomNode
   val vdomElement: PropTypeInfo                 = Simple.vdomElement
   val element: PropTypeInfo                     = Simple.element
-  def stringEnum(values: String*): PropTypeInfo = WithPresets(Simple.string, values.map(Preset.string))
 
   private val stringEnumValueRE = "'(.*)'".r
   private val litEnumValueRE    = """(true|false|-?\d+\.\d+|-?\d+)""".r
@@ -151,27 +160,26 @@ object PropTypeInfo       {
       case simple: PropType.Simple     => Simple.fromPropType(simple)
         case PropType.Func               => jsAny =>: jsAny
       case PropType.ArrayOf(param)     => apply(param).sequence
-      case PropType.Union(types)       => Union(types.map(apply))
+      case PropType.Union(types)       => Union(types.map(apply)).simplify
         case PropType.Enum(base, values) =>
-          WithPresets(Simple.fromPropType(base),
+          WithPresets(apply(base),
           values.collect {
-            case litEnumValueRE(s)    => Preset.literal(s)
-            case stringEnumValueRE(s) => Preset.string(s)
+            case litEnumValueRE(s)    => Preset.Unquoted(s)
+            case stringEnumValueRE(s) => Preset.Quoted(s)
           }
         )
     }
 
-  private implicit val presetCodec: Codec[PropTypeInfo.Preset]     = deriveConfiguredCodec
-  private implicit val enumCodec: Codec[PropTypeInfo.WithPresets]  = deriveConfiguredCodec
-  private implicit val unionCodec: Codec[PropTypeInfo.Union]       = deriveConfiguredCodec
-  private implicit val functionCodec: Codec[PropTypeInfo.Function] = deriveConfiguredCodec
-  implicit val encodePropTypeInfo: Encoder[PropTypeInfo]           = Encoder.instance[PropTypeInfo] {
+  implicit val enumCodec: Codec[PropTypeInfo.WithPresets]  = deriveConfiguredCodec
+  implicit val unionCodec: Codec[PropTypeInfo.Union]       = deriveConfiguredCodec
+  implicit val functionCodec: Codec[PropTypeInfo.Function] = deriveConfiguredCodec
+  implicit val encodePropTypeInfo: Encoder[PropTypeInfo]   = Encoder.instance[PropTypeInfo] {
     case s: Simple      => Simple.encodeSimple(s)
     case e: WithPresets => enumCodec(e)
     case u: Union       => unionCodec(u)
     case f: Function    => functionCodec(f)
   }
-  implicit val decodePropTypeInfo: Decoder[PropTypeInfo]           =
+  implicit val decodePropTypeInfo: Decoder[PropTypeInfo]   =
     unionCodec
       .or(enumCodec.map(identity[PropTypeInfo]))
       .or(functionCodec.map(identity[PropTypeInfo]))
