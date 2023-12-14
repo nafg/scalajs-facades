@@ -18,6 +18,7 @@ trait FacadeModule extends FacadeModuleBase {
   def mkProps: Props
   def factory: Factory[Props] = facade.factory(mkProps)
   type Setting = Factory.Setting[Props]
+  def Settings(settings: Setting*): Seq[Setting] = settings
 }
 
 object FacadeModule {
