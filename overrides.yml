@@ -28,24 +28,81 @@ mui:
           - ReactMouseEventFromHtml
         result: callback
   components:
+    .system:
+      props:
+        alignItems:
+          type:
+            base: string
+            presets:
+              - string: flex-start
+              - string: flex-end
+              - string: center
+              - string: stretch
+              - string: baseline
+        color:
+          type:
+            base: string
+            presets:
+              - string: primary.main
+              - string: secondary.main
+              - string: error.main
+              - string: warning.main
+              - string: info.main
+              - string: success.main
+              - string: text.primary
+              - string: text.secondary
+              - string: text.disabled
+        display:
+          type:
+            base: string
+            presets:
+              - string: block
+              - string: inline
+        justifyContent:
+          type:
+            base: string
+            presets:
+              - string: flex-start
+              - string: flex-end
+              - string: center
+              - string: space-between
+              - string: space-around
+              - string: space-evenly
+    Alert:
+      props:
+        icon:
+          type:
+            base:
+              anyOf:
+                - bool
+                - vdomNode
+            presets: [ false ]
     Autocomplete:
       props:
+        filterOptions:
+          type:
+            args:
+              - arrayOf: jsAny
+              - jsObject
+            result:
+              arrayOf: jsAny
         getOptionLabel:
           type:
             args:
               - jsAny
             result: string
+        isOptionEqualToValue:
+          type:
+            args:
+              - jsAny
+              - jsAny
+            result: bool
         onChange:
           type:
             args:
               - ReactEvent
               - jsAny
             result: callback
-        renderOption:
-          type:
-            args:
-              - jsAny
-            result: vdomNode
         onInputChange:
           type:
             args:
@@ -58,17 +115,25 @@ mui:
             args:
               - jsDictionary
             result: vdomNode
-        filterOptions:
+        renderOption:
           type:
-            args:
-              - arrayOf: jsAny
-              - jsObject
-            result:
-              arrayOf: jsAny
+            args: [ jsObject, jsAny, jsObject, jsObject ]
+            result: vdomNode
     Breadcrumbs:
       moduleTrait: FacadeModule.ArrayChildren
     ButtonGroup:
       moduleTrait: FacadeModule.ArrayChildren
+    Card:
+      extends: Paper
+      props:
+        raised:
+          type: bool
+    Chip:
+      props:
+        onDelete:
+          type:
+            args: [ ReactMouseEvent ]
+            result: callback
     Container:
       props:
         children:
@@ -88,18 +153,12 @@ mui:
                 - string
                 - bool
             presets:
-              - name: xs
-                code: '"xs"'
-              - name: sm
-                code: '"sm"'
-              - name: md
-                code: '"md"'
-              - name: lg
-                code: '"lg"'
-              - name: xl
-                code: '"xl"'
-              - name: "false"
-                code: 'false'
+              - string: xs
+              - string: sm
+              - string: md
+              - string: lg
+              - string: xl
+              - false
     Dialog:
       props:
         onClose:
@@ -114,14 +173,17 @@ mui:
           type:
             base: string
             presets:
-              - name: inherit
-                code: '"inherit"'
-              - name: large
-                code: '"large"'
-              - name: medium
-                code: '"medium"'
-              - name: small
-                code: '"small"'
+              - string: inherit
+              - string: large
+              - string: medium
+              - string: small
+    Fade:
+      props:
+        children:
+          required: true
+          type: vdomElement
+    Grid:
+      extends: .system
     IconButton:
       props:
         children:
@@ -133,6 +195,8 @@ mui:
             args:
               - ReactEventFromInput
             result: callback
+    Link:
+      extends: Typography
     List:
       moduleTrait: FacadeModule.ArrayChildren
     ListItem:
@@ -178,18 +242,24 @@ mui:
                   anyOf:
                     - element
                     - jsObject
+    RadioGroup:
+      extends: FormGroup
+    Select:
+      props:
+        renderValue:
+          type:
+            args:
+              - jsAny
+            result: vdomNode
     TableCell:
       props:
         padding:
           type:
             base: string
             presets:
-              - name: normal
-                code: '"normal"'
-              - name: checkbox
-                code: '"checkbox"'
-              - name: none
-                code: '"none"'
+              - string: normal
+              - string: checkbox
+              - string: none
     TablePagination:
       props:
         page:
@@ -203,6 +273,14 @@ mui:
             args:
               - ReactEvent
               - int
+            result: callback
+    Tabs:
+      props:
+        onChange:
+          type:
+            args:
+              - ReactEvent
+              - jsAny
             result: callback
     TextField:
       props:
@@ -227,6 +305,8 @@ mui:
         children:
           type: vdomElement
           required: true
+    Typography:
+      extends: .system
 
 mui.lab:
   common:

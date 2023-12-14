@@ -1,3 +1,5 @@
+import scala.collection.immutable.SortedMap
+
 import Overrides.PropInfoOverride
 import io.circe.Codec
 import io.circe.generic.extras.Configuration
@@ -5,18 +7,46 @@ import io.circe.generic.extras.semiauto.deriveConfiguredCodec
 
 
 case class Overrides(
-  common: Map[String, PropInfoOverride] = Map.empty,
-  components: Map[String, Overrides.ComponentOverrides] = Map.empty,
-  moduleTraits: Map[String, String] = Map.empty) {
+  common: SortedMap[String, PropInfoOverride] = SortedMap.empty,
+  components: SortedMap[String, Overrides.ComponentOverrides] = SortedMap.empty) {
+
+  def get(name: String): Overrides.ComponentOverrides = components.getOrElse(name, Overrides.ComponentOverrides.empty)
 
   def getPropInfoOverrides(componentInfo: ComponentInfo): Map[String, PropInfoOverride] =
     common ++
-      components.getOrElse(componentInfo.name, Overrides.ComponentOverrides.NoOp).props
+      get(componentInfo.name).props
+
+  def applyExtends: Overrides =
+    copy(components =
+      components.map { case (name, componentOverrides) =>
+        name -> componentOverrides.applyExtends(this)
+      }
+    )
 }
 object Overrides {
-  case class ComponentOverrides(props: Map[String, PropInfoOverride] = Map.empty, moduleTrait: Option[String] = None)
+  case class ComponentOverrides(
+    props: SortedMap[String, PropInfoOverride] = SortedMap.empty,
+    `extends`: Option[String] = None,
+    moduleTrait: Option[String] = None) {
+
+    def ++(that: ComponentOverrides) =
+      copy(
+        props = this.props ++ that.props,
+        `extends` = this.`extends`.orElse(that.`extends`),
+        moduleTrait = this.moduleTrait.orElse(that.moduleTrait)
+      )
+
+    def applyExtends(overrides: Overrides): ComponentOverrides =
+      `extends` match {
+        case None             => this
+        case Some(parentName) =>
+          val parent         = overrides.get(parentName)
+          val parentExtended = parent.applyExtends(overrides)
+          parentExtended ++ this
+      }
+  }
   object ComponentOverrides {
-    val NoOp = ComponentOverrides()
+    val empty = ComponentOverrides()
   }
 
   case class PropInfoOverride(`type`: Option[PropTypeInfo] = None, required: Option[Boolean] = None)
