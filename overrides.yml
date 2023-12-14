@@ -1,0 +1,212 @@
+mui.base:
+  common:
+    style:
+      type: jsObject
+    onClick:
+      type:
+        args:
+          - ReactMouseEventFromHtml
+        result: callback
+  components:
+    ClickAwayListener:
+      props:
+        children:
+          required: true
+          type: vdomElement
+        onClickAway:
+          type:
+            args: [ ]
+            result: callback
+
+mui:
+  common:
+    style:
+      type: jsObject
+    onClick:
+      type:
+        args:
+          - ReactMouseEventFromHtml
+        result: callback
+  components:
+    Autocomplete:
+      props:
+        getOptionLabel:
+          type:
+            args:
+              - jsAny
+            result: string
+        onChange:
+          type:
+            args:
+              - ReactEvent
+              - jsAny
+            result: callback
+        renderOption:
+          type:
+            args:
+              - jsAny
+            result: vdomNode
+        onInputChange:
+          type:
+            args:
+              - ReactEvent
+              - string
+              - string
+            result: callback
+        renderInput:
+          type:
+            args:
+              - jsDictionary
+            result: vdomNode
+        filterOptions:
+          type:
+            args:
+              - base: jsAny
+              - jsObject
+            result:
+              base: jsAny
+    Breadcrumbs:
+      moduleTrait: FacadeModule.ArrayChildren
+    ButtonGroup:
+      moduleTrait: FacadeModule.ArrayChildren
+    Container:
+      props:
+        children:
+          type: vdomNode
+    Dialog:
+      props:
+        onClose:
+          type:
+            args:
+              - ReactEvent
+              - string
+            result: callback
+    Icon:
+      props:
+        fontSize:
+          type:
+            base: string
+            presets:
+              - name: inherit
+                code: '"inherit"'
+              - name: large
+                code: '"large"'
+              - name: medium
+                code: '"medium"'
+              - name: small
+                code: '"small"'
+    IconButton:
+      props:
+        children:
+          type: vdomNode
+    InputBase:
+      props:
+        onChange:
+          type:
+            args:
+              - ReactEventFromInput
+            result: callback
+    List:
+      moduleTrait: FacadeModule.ArrayChildren
+    ListItem:
+      props:
+        children:
+          type: vdomNode
+    Menu:
+      props:
+        anchorEl:
+          type:
+            anyOf:
+              - element
+              - args:
+                  - jsObject
+                result: element
+        onClose:
+          type:
+            args:
+              - ReactEvent
+              - string
+            result: callback
+    OutlinedInput:
+      props:
+        onChange:
+          type:
+            args:
+              - ReactEventFromInput
+            result: callback
+    Paper:
+      props:
+        elevation:
+          type: int
+    Popper:
+      props:
+        anchorEl:
+          type:
+            anyOf:
+              - element
+              - jsObject
+              - args:
+                  - jsObject
+                result:
+                  anyOf:
+                    - element
+                    - jsObject
+    TableCell:
+      props:
+        padding:
+          type:
+            base: string
+            presets:
+              - name: normal
+                code: '"normal"'
+              - name: checkbox
+                code: '"checkbox"'
+              - name: none
+                code: '"none"'
+    TablePagination:
+      props:
+        page:
+          type: int
+        count:
+          type: int
+        rowsPerPage:
+          type: int
+        onPageChange:
+          type:
+            args:
+              - ReactEvent
+              - int
+            result: callback
+    TextField:
+      props:
+        onChange:
+          type:
+            args:
+              - ReactEventFromInput
+            result: callback
+        children:
+          type: vdomNode
+    ToggleButtonGroup:
+      moduleTrait: FacadeModule.ArrayChildren
+      props:
+        onChange:
+          type:
+            args:
+              - ReactEvent
+              - jsAny
+            result: callback
+    Tooltip:
+      props:
+        children:
+          type: vdomElement
+          required: true
+
+mui.lab:
+  common:
+    style:
+      type: jsObject
+    onClick:
+      type:
+        args:
+          - ReactMouseEventFromHtml
+        result: callback

@@ -1,18 +1,19 @@
 sealed trait PropType
 
 object PropType {
-  case object Any extends PropType
-  case object Bool extends PropType
-  case object Element extends PropType
-  case object ElementType extends PropType
+  sealed trait Simple extends PropType
+  case object Any extends Simple
+  case object Bool extends Simple
+  case object Element extends Simple
+  case object ElementType extends Simple
   case object Func extends PropType
-  case object Node extends PropType
-  case object Number extends PropType
-  case object Object extends PropType
-  case object String extends PropType
+  case object Node extends Simple
+  case object Number extends Simple
+  case object Object extends Simple
+  case object String extends Simple
   case class ArrayOf(param: PropType) extends PropType
   case class Union(types: Seq[PropType]) extends PropType
-  case class Enum(base: PropType, values: Seq[String]) extends PropType
+  case class Enum(base: Simple, values: Seq[String]) extends PropType
 
   def read(obj: scala.collection.Map[String, ujson.Value]): Option[PropType] = obj("name").str match {
     case "any"                             => Some(Any)
