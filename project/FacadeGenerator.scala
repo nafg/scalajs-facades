@@ -12,7 +12,7 @@ import sjsonnew.{IsoString, JsonFormat}
 
 
 object FacadeGenerator {
-  implicit val isoStringPath: IsoString[Path] = IsoString.iso[os.Path](_.toString(), os.Path(_))
+  implicit val isoStringPath: IsoString[Path]                                                          = IsoString.iso[os.Path](_.toString(), os.Path(_))
 
   private def comment(str: String, indent: String)                                                     =
     str.trim.linesIterator.toVector match {
@@ -39,13 +39,35 @@ object FacadeGenerator {
     doCached(CacheStore((base / "docgen-cache.json").toIO), repoDir, subDir) {
       val docGenOutputFile   = base / "react-docgen.json"
       println(s"Writing react-docgen JSON for $subDir to $docGenOutputFile")
+      def logFile            = base / "react-docgen.log"
+      val logToFile          = BooleanProp.keyExists("docgen.log").value
       val log: ProcessOutput =
-        if (BooleanProp.keyExists("docgen.log").value)
+        if (logToFile)
           os.Inherit
-        else
-          base / "react-docgen.log"
-      os.proc("yarn", "react-docgen", "--out", docGenOutputFile.toString(), "--exclude", ".*\\.test\\.js$", subDir)
-        .call(cwd = repoDir, stderr = log, stdout = log)
+        else {
+          println(s"Writing react-docgen log for $subDir to $logFile")
+          logFile
+        }
+      val res                =
+        os.proc(
+          "yarn",
+          "react-docgen",
+          "--out",
+          docGenOutputFile.toString(),
+          "--exclude",
+          ".*\\.test\\.js$",
+          "-x",
+          "js",
+          "-x",
+          "tsx",
+          subDir
+        )
+          .call(cwd = repoDir, stderr = log, stdout = log, check = false)
+      if (res.exitCode != 0) {
+        if (logToFile)
+          println(os.read(logFile))
+        throw new Exception(s"react-docgen failed with exit code ${res.exitCode}")
+      }
       println()
       os.read(docGenOutputFile)
     }
@@ -65,16 +87,15 @@ object FacadeGenerator {
       s"  def $name(${params.map { case (name, typ) => s"$name: $typ" }.mkString(", ")}): $resultType =\n" +
         s"    $body"
 
-    val factoryMethods = requiredNonChildrenProps match {
+    val factoryMethods                        = requiredNonChildrenProps match {
       case Seq() => ""
       case infos =>
-        def mkParams(propInfos: Seq[PropInfo]): Seq[(String, String)]                 =
+        def mkParams(propInfos: Seq[PropInfo]): Seq[(String, String)]                                =
           propInfos.map(i => i.ident.toString -> i.propTypeInfo.code)
-        def mkSettingsExprs[A](xs: Seq[A])(ident: A => Identifier, code: A => String) =
+        def mkSettingsExprs[A](xs: Seq[A])(ident: A => Identifier, code: A => String)                =
           xs.map(x => s"_.${ident(x)} := ${code(x)}")
 
-        val settingsVarArgParam = "settings" -> "Setting*"
-
+        val settingsVarArgParam                                                                      = "settings" -> "Setting*"
         def mkFactoryMethod(name: String, params: Seq[(String, String)])(settingsExprs: Seq[String]) = {
           val settingsExpr = settingsExprs.mkString("Seq[Setting](", ", ", ") ++ settings: _*")
           if (info.maybeChildrenProp.isDefined)
@@ -87,9 +108,9 @@ object FacadeGenerator {
             mkSettingsExprs(infos)(_.ident, _.ident.toString)
           )
 
-        val (withPresets, others) = infos.partition(_.propTypeInfo.presets.nonEmpty)
+        val (withPresets, others)                                                                    = infos.partition(_.propTypeInfo.presets.nonEmpty)
 
-        val presetMethods =
+        val presetMethods                                                                            =
           if (withPresets.isEmpty) Nil
           else
             withPresets.toList.traverse(_.propTypeInfo.presets.toList).map {
@@ -103,7 +124,7 @@ object FacadeGenerator {
         (applyMethod +: presetMethods).mkString("\n\n")
     }
 
-    val moduleParent =
+    val moduleParent                          =
       genInfo.moduleTrait +
         (if (factoryMethods.nonEmpty) "" else ".Simple") +
         genInfo.moduleTraitParam.fold("")("[" + _ + "]")
@@ -113,16 +134,18 @@ object FacadeGenerator {
         .map(i => "PropTypes.WithChildren" -> Some(i.propTypeInfo.code))
         .getOrElse("PropTypes" -> None)
 
-    val propDefs =
-      info.props.map { case PropInfo(_, ident, PropTypeInfo(code, _, presets), description, _) =>
+    val propDefs                              =
+      info.props.map { case PropInfo(_, ident, PropTypeInfo(typeCode, _, presets), description, _) =>
         s"${comment(description, "    ")}\n" +
           (if (presets.isEmpty)
-             s"def $ident = of[$code]"
+             s"def $ident = of[$typeCode]"
            else {
-             s"""object $ident extends PropTypes.Prop[$code]("$ident") {
+             s"""object $ident extends PropTypes.Prop[$typeCode]("$ident") {
                |${
                  presets
-                   .map { case PropTypeInfo.Preset(name, code) => s"  val $name = this := $code" }
+                   .map { case PropTypeInfo.Preset(name, presetCode) =>
+                     s"  val $name = this := $presetCode.asInstanceOf[$typeCode]"
+                   }
                    .mkString("\n")
                }
                |}""".stripMargin
@@ -130,11 +153,11 @@ object FacadeGenerator {
             .linesWithSeparators.map("    " + _).mkString
       }
 
-    val componentDescription =
-      s"View original docs online: https://v4.mui.com/api/${kebabCaseTransformation(info.name)}/\n\n" +
+    val componentDescription                  =
+      s"View original docs online: https://mui.com/api/${kebabCaseTransformation(info.name)}/\n\n" +
         info.description
 
-    val code =
+    val code                                  =
       s"""|package $scalaPackage
           |
           |${imports.map("import " + _).mkString("\n")}
@@ -149,7 +172,7 @@ object FacadeGenerator {
           |
           |${comment(componentDescription, "")}
           |object ${info.name} extends $moduleParent {
-          |  @JSImport("$jsPackage/${info.name}", JSImport.Default)
+          |  @JSImport("$jsPackage", "${info.name}")
           |  @js.native
           |  object raw extends js.Object
           |

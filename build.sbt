@@ -70,7 +70,12 @@ lazy val reactWidgets          = project.configure(moduleConfig("react-widgets",
 lazy val reactWaypoint         = project.configure(moduleConfig("react-waypoint", "10.3.0"))
 lazy val reactDatepicker       = project.configure(moduleConfig("react-datepicker", "4.8.0"))
 
-def materialUiCoreVersion = "4.12.4"
+def materialUiCoreVersion = "5.14.20"
+
+val emotionNpmDeps = Compile / npmDependencies ++= Seq(
+  "@emotion/react"  -> "11.11.1",
+  "@emotion/styled" -> "11.11.0"
+)
 
 def commonPropInfoTransformer: PropInfoTransformer = {
   case (_, p @ PropInfo("classes", _, _, _, true)) =>
@@ -90,22 +95,74 @@ def commonComponentInfoTransformer: ComponentInfoTransformer =
 
 def materialUiGitUrl = "https://github.com/mui-org/material-ui.git"
 
-lazy val materialUiCore =
+lazy val materialUiBase =
   project
-    .configure(moduleConfig("@material-ui/core", materialUiCoreVersion))
+    .configure(moduleConfig("@mui/base", "5.0.0-beta.26"))
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
+      emotionNpmDeps,
       reactDocGenRepoUrl              := materialUiGitUrl,
       reactDocGenRepoRef              := ("v" + materialUiCoreVersion),
       propInfoTransformer             := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("ClickAwayListener" | "Tooltip", _, _), p @ PropInfo("children", _, _, _, _))             =>
+        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("children", _, _, _, _))    =>
           p.copy(
             required = true,
             propTypeInfo = PropTypeInfo("VdomElement", CommonImports.VdomElement)
           )
-        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("onClickAway", _, _, _, _))                      =>
+        case (ComponentInfo("ClickAwayListener", _, _), p @ PropInfo("onClickAway", _, _, _, _)) =>
           p.copy(propTypeInfo =
             PropTypeInfo("() => Callback", CommonImports.Callback)
+          )
+      },
+      componentInfoTransformer := commonComponentInfoTransformer.andThen {
+        case c if Set("Container", "TextField").contains(c.name) =>
+          c.addPropIfNotExists(PropInfo("children", "VdomNode", CommonImports.VdomNode))
+        case c                                                   =>
+          c
+      },
+      Compile / sourceGenerators += generateReactDocGenFacades("packages/mui-base/src", "@mui/base", "mui.base")
+    )
+
+lazy val materialUiCore =
+  project
+    .configure(moduleConfig("@mui/material", materialUiCoreVersion))
+    .enablePlugins(FacadeGeneratorPlugin)
+    .settings(
+      emotionNpmDeps,
+      reactDocGenRepoUrl := materialUiGitUrl,
+      reactDocGenRepoRef := ("v" + materialUiCoreVersion),
+      propInfoTransformer := commonPropInfoTransformer.orElse {
+        case (ComponentInfo("Autocomplete", _, _), p) =>
+          p.name match {
+            case "filterOptions"  => p.copy(propTypeInfo = PropTypeInfo("(Seq[js.Any], js.Object) => Seq[js.Any]"))
+            case "getOptionLabel" => p.copy(propTypeInfo = PropTypeInfo("js.Any => String"))
+            case "onChange"       =>
+              p.copy(
+                propTypeInfo =
+                  PropTypeInfo(
+                    "(ReactEvent, js.Any) => Callback",
+                    CommonImports.Callback ++ CommonImports.ReactEvent
+                  )
+              )
+            case "onInputChange"  =>
+              p.copy(
+                propTypeInfo =
+                  PropTypeInfo(
+                    "(ReactEvent, String, String) => Callback",
+                    CommonImports.Callback ++ CommonImports.ReactEvent
+                  )
+              )
+            case "renderInput"    =>
+              p.copy(propTypeInfo = PropTypeInfo("js.Dictionary[js.Any] => VdomNode", CommonImports.VdomNode))
+            case "renderOption"   =>
+              p.copy(propTypeInfo = PropTypeInfo("js.Any => VdomNode", CommonImports.VdomNode))
+            case _                =>
+              p
+          }
+        case (ComponentInfo("Tooltip", _, _), p @ PropInfo("children", _, _, _, _))                                   =>
+          p.copy(
+            required = true,
+            propTypeInfo = PropTypeInfo("VdomElement", CommonImports.VdomElement)
           )
         case (ComponentInfo("Dialog", _, _), p @ PropInfo("onClose", _, _, _, _))                                     =>
           p.copy(propTypeInfo =
@@ -118,6 +175,14 @@ lazy val materialUiCore =
         case (ComponentInfo("IconButton" | "ListItem", _, _), p @ PropInfo("children", _, _, _, _))                   =>
           p.copy(propTypeInfo =
             PropTypeInfo("VdomNode", CommonImports.VdomNode)
+          )
+        case (ComponentInfo("InputBase" | "OutlinedInput" | "TextField", _, _), p @ PropInfo("onChange", _, _, _, _)) =>
+          p.copy(
+            propTypeInfo =
+              PropTypeInfo(
+                "ReactEventFromInput => Callback",
+                CommonImports.Callback + CommonImports.react("ReactEventFromInput")
+              )
           )
         case (ComponentInfo("Menu", _, _), p @ PropInfo("anchorEl", _, _, _, _))                                      =>
           p.copy(propTypeInfo =
@@ -149,12 +214,10 @@ lazy val materialUiCore =
           p.copy(propTypeInfo =
             PropTypeInfo("(ReactEvent, Int) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
           )
-        case (ComponentInfo("InputBase" | "OutlinedInput" | "TextField", _, _), p @ PropInfo("onChange", _, _, _, _)) =>
-          p.copy(propTypeInfo =
-            PropTypeInfo(
-              "ReactEventFromInput => Callback",
-              CommonImports.Callback + CommonImports.react("ReactEventFromInput")
-            )
+        case (ComponentInfo("ToggleButtonGroup", _, _), p @ PropInfo("onChange", _, _, _, _))                         =>
+          p.copy(
+            propTypeInfo =
+              PropTypeInfo("(ReactEvent, js.Any) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
           )
       },
       componentInfoTransformer        := commonComponentInfoTransformer.andThen {
@@ -166,64 +229,32 @@ lazy val materialUiCore =
       componentCodeGenInfoTransformer := {
         case c @ ComponentCodeGenInfo(ComponentInfo("ButtonGroup" | "List", _, _), _, _) =>
           c.copy(moduleTrait = "FacadeModule.ArrayChildren")
+        case c if Set("Breadcrumbs", "ToggleButtonGroup").contains(c.componentInfo.name) =>
+          c.copy(moduleTrait = "FacadeModule.ArrayChildren")
       },
-      Compile / sourceGenerators += generateReactDocGenFacades("packages/material-ui/src", "@material-ui/core", "mui")
+      Compile / sourceGenerators += generateReactDocGenFacades("packages/mui-material/src", "@mui/material", "mui")
     )
 
 lazy val materialUiLab =
   project
-    .configure(moduleConfig("@material-ui/lab", "4.0.0-alpha.60"))
+    .configure(moduleConfig("@mui/lab", "5.0.0-alpha.155"))
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
-      reactDocGenRepoUrl              := materialUiGitUrl,
-      reactDocGenRepoRef              := ("v" + materialUiCoreVersion),
-      propInfoTransformer             := commonPropInfoTransformer.orElse {
-        case (ComponentInfo("ToggleButtonGroup", _, _), p @ PropInfo("onChange", _, _, _, _)) =>
-          p.copy(propTypeInfo =
-            PropTypeInfo("(ReactEvent, js.Any) => Callback", CommonImports.Callback ++ CommonImports.ReactEvent)
-          )
-        case (ComponentInfo("Autocomplete", _, _), p)                                         =>
-          p.name match {
-            case "filterOptions"  => p.copy(propTypeInfo = PropTypeInfo("(Seq[js.Any], js.Object) => Seq[js.Any]"))
-            case "getOptionLabel" => p.copy(propTypeInfo = PropTypeInfo("js.Any => String"))
-            case "onChange"       =>
-              p.copy(propTypeInfo =
-                PropTypeInfo(
-                  "(ReactEvent, js.Any) => Callback",
-                  CommonImports.Callback ++ CommonImports.ReactEvent
-                )
-              )
-            case "onInputChange"  =>
-              p.copy(propTypeInfo =
-                PropTypeInfo(
-                  "(ReactEvent, String, String) => Callback",
-                  CommonImports.Callback ++ CommonImports.ReactEvent
-                )
-              )
-            case "renderInput"    =>
-              p.copy(propTypeInfo = PropTypeInfo("js.Dictionary[js.Any] => VdomNode", CommonImports.VdomNode))
-            case "renderOption"   =>
-              p.copy(propTypeInfo = PropTypeInfo("js.Any => VdomNode", CommonImports.VdomNode))
-            case _                =>
-              p
-          }
-      },
+      emotionNpmDeps,
+      reactDocGenRepoUrl := materialUiGitUrl,
+      reactDocGenRepoRef := ("v" + materialUiCoreVersion),
+      propInfoTransformer := commonPropInfoTransformer,
       componentInfoTransformer        := commonComponentInfoTransformer,
-      componentCodeGenInfoTransformer := {
-        case c if Set("Breadcrumbs", "ToggleButtonGroup").contains(c.componentInfo.name) =>
-          c.copy(moduleTrait = "FacadeModule.ArrayChildren")
-      },
-      Compile / sourceGenerators +=
-        generateReactDocGenFacades("packages/material-ui-lab/src", "@material-ui/lab", "mui.lab")
+      Compile / sourceGenerators += generateReactDocGenFacades("packages/mui-lab/src", "@mui/lab", "mui.lab")
     )
 
 val generateInstallInstructions = taskKey[Unit]("Generate install instructions in README.md")
 
 generateInstallInstructions := {
-  val info = Def.task((projectID.value, description.value, (publish / skip).value)).all(ScopeFilter(inAnyProject)).value
-
+  val info           =
+    Def.task((projectID.value, description.value, (publish / skip).value)).all(ScopeFilter(inAnyProject)).value
   val lines          =
-    for ((moduleId, descr, noPublish) <- info.sortBy(_._1.name) if !noPublish) yield "// " + descr + "\n" +
+    for ((moduleId, description, noPublish) <- info.sortBy(_._1.name) if !noPublish) yield "// " + description + "\n" +
       s"""libraryDependencies += "${moduleId.organization}" %%% "${moduleId.name}" % "${moduleId.revision}""""
   val block          =
     s"""|## Installation
