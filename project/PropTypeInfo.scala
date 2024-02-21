@@ -158,11 +158,12 @@ object PropTypeInfo       {
   def apply(propType: PropType): PropTypeInfo =
     propType match {
       case simple: PropType.Simple     => Simple.fromPropType(simple)
-        case PropType.Func               => jsAny =>: jsAny
+      case PropType.Func               => jsAny =>: jsAny
       case PropType.ArrayOf(param)     => apply(param).sequence
       case PropType.Union(types)       => Union(types.map(apply)).simplify
-        case PropType.Enum(base, values) =>
-          WithPresets(apply(base),
+      case PropType.Enum(base, values) =>
+        WithPresets(
+          apply(base),
           values.collect {
             case litEnumValueRE(s)    => Preset.Unquoted(s)
             case stringEnumValueRE(s) => Preset.Quoted(s)

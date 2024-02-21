@@ -14,7 +14,8 @@ object Identifier {
   def quotedIfNecessary(value: String)    =
     if (value == "")
       "`''`"
-    else if (keywords.contains(value) ||
+    else if (
+      keywords.contains(value) ||
       value.headOption.exists(!Character.isJavaIdentifierStart(_)) ||
       value.exists(!Character.isJavaIdentifierPart(_))
     )
