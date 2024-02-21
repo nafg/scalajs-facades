@@ -18,8 +18,8 @@ object FacadeGeneratorPlugin extends AutoPlugin {
     def generateReactDocGenFacades(subDir: String, jsPackage: String, scalaSubPackage: String) =
       Def.task {
         runYarnInstall.value
-        val logger          = streams.value.log
-        val overrides       =
+        val logger    = streams.value.log
+        val overrides =
           Parser.default.decodeAccumulating[Map[String, Overrides]](IO.read(file("overrides.yml"))) match {
             case Validated.Invalid(errors) =>
               errors.toList.foreach(failure => logger.error(failure.show))

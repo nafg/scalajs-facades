@@ -93,7 +93,7 @@ object FacadeGenerator {
       s"  def $name(${params.map { case (name, typ) => s"$name: $typ" }.mkString(", ")}): $resultType =\n" +
         s"    $body"
 
-    val factoryMethods                        = requiredNonChildrenProps match {
+    val factoryMethods = requiredNonChildrenProps match {
       case Seq() => ""
       case infos =>
         def mkParams(propInfos: Seq[PropInfo]): Seq[(String, String)]                 =
@@ -101,7 +101,7 @@ object FacadeGenerator {
         def mkSettingsExprs[A](xs: Seq[A])(ident: A => Identifier, code: A => String) =
           xs.map(x => s"_.${ident(x)} := ${code(x)}")
 
-        val settingsVarArgParam = "settings" -> "Setting*"
+        val settingsVarArgParam                                                                      = "settings" -> "Setting*"
         def mkFactoryMethod(name: String, params: Seq[(String, String)])(settingsExprs: Seq[String]) = {
           val settingsExpr = settingsExprs.mkString("Seq[Setting](", ", ", ") ++ settings: _*")
           if (info.maybeChildrenProp.isDefined)
@@ -110,14 +110,14 @@ object FacadeGenerator {
             method(name, params :+ settingsVarArgParam, "Factory[Props]")(s"factory($settingsExpr)")
         }
 
-        val applyMethod           =
+        val applyMethod =
           mkFactoryMethod("apply", mkParams(infos))(
             mkSettingsExprs(infos)(_.identifier, _.identifier.toString)
           )
 
         val (withPresets, others) = infos.partition(_.`type`.presets.nonEmpty)
 
-        val presetMethods         =
+        val presetMethods =
           if (withPresets.isEmpty) Nil
           else
             withPresets.toList.traverse(_.`type`.presets.toList).map {
@@ -131,7 +131,7 @@ object FacadeGenerator {
         (applyMethod +: presetMethods).mkString("\n\n")
     }
 
-    val moduleParent                          =
+    val moduleParent =
       genInfo.moduleTrait +
         (if (factoryMethods.nonEmpty) "" else ".Simple") +
         genInfo.moduleTraitParam.fold("")("[" + _ + "]")
@@ -141,7 +141,7 @@ object FacadeGenerator {
         .map(i => "PropTypes.WithChildren" -> Some(i.`type`.code))
         .getOrElse("PropTypes" -> None)
 
-    val propDefs                              =
+    val propDefs =
       info.props.map { propInfo =>
         def typeCode = propInfo.`type`.code
         s"${comment(propInfo.description, "    ")}\n" +
@@ -160,12 +160,12 @@ object FacadeGenerator {
             .linesWithSeparators.map("    " + _).mkString
       }
 
-    val componentDescription                  =
+    val componentDescription =
       s"View original docs online: https://mui.com/api/${kebabCaseTransformation(info.name)}/\n\n" +
         info.description
-    val factoryImportPart                     =
+    val factoryImportPart    =
       if (factoryMethods.isEmpty || info.maybeChildrenProp.isDefined) "" else "Factory, "
-    val code                                  =
+    val code                 =
       s"""|package $scalaPackage
           |
           |${imports.map("import " + _).mkString("\n")}
