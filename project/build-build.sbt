@@ -1,4 +1,4 @@
-libraryDependencies += "com.lihaoyi"                   %% "os-lib"               % "0.9.3"
+libraryDependencies += "com.lihaoyi"                   %% "os-lib"               % "0.10.0"
 libraryDependencies += "com.lihaoyi"                   %% "ujson"                % "3.2.0"
 libraryDependencies += "com.lihaoyi"                   %% "pprint"               % "0.9.0"
 libraryDependencies += "io.github.nafg.scalac-options" %% "scalac-options"       % "0.2.0"
