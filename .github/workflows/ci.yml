@@ -24,48 +24,37 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [2.13.14, 3.3.3]
-        java: [temurin@11]
+        java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@11)
-        if: matrix.java == 'temurin@11'
-        uses: actions/setup-java@v2
+      - name: Setup Java (temurin@8)
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
-
-      - name: Cache sbt
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+          java-version: 8
+          cache: sbt
 
       - uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Check that workflows are up to date
-        run: sbt ++${{ matrix.scala }} githubWorkflowCheck
+        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - name: Build project
-        run: sbt ++${{ matrix.scala }} test
+        run: sbt '++ ${{ matrix.scala }}' test
 
       - name: Compress target directories
         run: tar cf targets.tar reactInputMask/target reactAutocomplete/target simpleFacade/target reactPhoneNumberInput/target reactWidgets/target materialUiLab/target target reactSelect/target reactDatepicker/target materialUiCore/target reactWaypoint/target materialUiBase/target project/target
 
       - name: Upload target directories
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
           path: targets.tar
@@ -78,39 +67,28 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         scala: [3.3.3]
-        java: [temurin@11]
+        java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Java (temurin@11)
-        if: matrix.java == 'temurin@11'
-        uses: actions/setup-java@v2
+      - name: Setup Java (temurin@8)
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
-
-      - name: Cache sbt
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+          java-version: 8
+          cache: sbt
 
       - uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Download target directories (2.13.14)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-2.13.14-${{ matrix.java }}
 
@@ -120,7 +98,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (3.3.3)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-3.3.3-${{ matrix.java }}
 
@@ -134,4 +112,4 @@ jobs:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-        run: sbt ++${{ matrix.scala }} ci-release
+        run: sbt ci-release
