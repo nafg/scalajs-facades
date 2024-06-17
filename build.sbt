@@ -68,7 +68,7 @@ lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-num
 lazy val reactAutocomplete     = project.configure(moduleConfig("react-autocomplete", "1.8.1"))
 lazy val reactWidgets          = project.configure(moduleConfig("react-widgets", "5.8.4"))
 lazy val reactWaypoint         = project.configure(moduleConfig("react-waypoint", "10.3.0"))
-lazy val reactDatepicker       = project.configure(moduleConfig("react-datepicker", "4.8.0"))
+lazy val reactDatepicker       = project.configure(moduleConfig("react-datepicker", "7.0.0"))
 
 def materialUiCoreVersion = "5.14.20"
 
