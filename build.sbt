@@ -70,18 +70,18 @@ lazy val reactWidgets          = project.configure(moduleConfig("react-widgets",
 lazy val reactWaypoint         = project.configure(moduleConfig("react-waypoint", "10.3.0"))
 lazy val reactDatepicker       = project.configure(moduleConfig("react-datepicker", "7.0.0"))
 
-def materialUiCoreVersion = "5.14.20"
+def materialUiCoreVersion = "5.15.3"
 
 val emotionNpmDeps = Compile / npmDependencies ++= Seq(
-  "@emotion/react"  -> "11.11.1",
-  "@emotion/styled" -> "11.11.0"
+  "@emotion/react"  -> "11.11.4",
+  "@emotion/styled" -> "11.11.5"
 )
 
 def materialUiGitUrl = "https://github.com/mui-org/material-ui.git"
 
 lazy val materialUiBase =
   project
-    .configure(moduleConfig("@mui/base", "5.0.0-beta.26"))
+    .configure(moduleConfig("@mui/base", "5.0.0-beta.40"))
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
       emotionNpmDeps,
@@ -103,7 +103,7 @@ lazy val materialUiCore =
 
 lazy val materialUiLab =
   project
-    .configure(moduleConfig("@mui/lab", "5.0.0-alpha.155"))
+    .configure(moduleConfig("@mui/lab", "5.0.0-alpha.170"))
     .enablePlugins(FacadeGeneratorPlugin)
     .settings(
       emotionNpmDeps,
