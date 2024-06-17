@@ -18,6 +18,7 @@ object ReactPhoneNumberInput extends FacadeModule.Simple {
     val value          = of[String]
     val onChange       = of[Option[String] => Callback]
     val defaultCountry = of[String]
+    val international  = of[Boolean]
     val inputComponent = of[ElementType]
   }
 
