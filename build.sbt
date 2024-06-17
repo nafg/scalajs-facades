@@ -62,7 +62,7 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
     )
 
-lazy val reactSelect           = project.configure(moduleConfig("react-select", "5.6.1"))
+lazy val reactSelect           = project.configure(moduleConfig("react-select", "5.8.0"))
 lazy val reactInputMask        = project.configure(moduleConfig("react-input-mask", "2.0.4"))
 lazy val reactPhoneNumberInput = project.configure(moduleConfig("react-phone-number-input", "3.4.3"))
 lazy val reactAutocomplete     = project.configure(moduleConfig("react-autocomplete", "1.8.1"))
