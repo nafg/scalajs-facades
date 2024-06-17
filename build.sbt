@@ -29,14 +29,11 @@ sonatypeProfileName := "io.github.nafg"
 
 publish / skip := true
 
-def sjsCrossTarget = crossTarget ~= (new File(_, "sjs" + scalaJSVersion))
-
 lazy val simpleFacade =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
       description         := "Library for react component facades that are simple to write and simple to use",
-      sjsCrossTarget,
       sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.1",
@@ -55,7 +52,6 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
         case s                                 => s.takeWhile(_ != '.')
       }),
       description                          := s"Facade for $npmName version $npmVersion",
-      sjsCrossTarget,
       useYarn                              := true,
       sonatypeProfileName                  := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
