@@ -36,8 +36,8 @@ lazy val simpleFacade =
       description         := "Library for react component facades that are simple to write and simple to use",
       sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.1",
-        "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.1",
+        "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.2",
+        "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.2",
         "me.shadaj"                         %%% "slinky-readwrite" % "0.7.4",
         "org.scalameta"                     %%% "munit"            % "1.0.0" % Test
       )
