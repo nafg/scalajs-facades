@@ -39,7 +39,7 @@ lazy val simpleFacade =
         "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.2",
         "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.2",
         "me.shadaj"                         %%% "slinky-readwrite" % "0.7.4",
-        "org.scalameta"                     %%% "munit"            % "1.0.3" % Test
+        "org.scalameta"                     %%% "munit"            % "1.0.4" % Test
       )
     )
 
