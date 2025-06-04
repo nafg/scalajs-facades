@@ -16,7 +16,7 @@ inThisBuild(List(
   dynverGitDescribeOutput ~= (_.map(o => o.copy(dirtySuffix = GitDirtySuffix("")))),
   dynverSonatypeSnapshots             := true,
   versionScheme                       := Some("early-semver"),
-  githubWorkflowScalaVersions         := List("2.13.x", "3.x"),
+  githubWorkflowScalaVersions         := githubWorkflowScalaVersions.value.map(_.replaceFirst("\\d+$", "x")),
   githubWorkflowJobSetup +=
     WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v4"), params = Map("node-version" -> "18")),
   githubWorkflowTargetTags ++= Seq("v*"),
