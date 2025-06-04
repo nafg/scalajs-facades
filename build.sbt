@@ -25,8 +25,6 @@ inThisBuild(List(
   scalacOptions ++= myScalacOptions(scalaVersion.value)
 ))
 
-sonatypeProfileName := "io.github.nafg"
-
 publish / skip := true
 
 lazy val simpleFacade =
@@ -34,7 +32,6 @@ lazy val simpleFacade =
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
       description         := "Library for react component facades that are simple to write and simple to use",
-      sonatypeProfileName := "io.github.nafg",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.2",
         "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.2",
@@ -53,7 +50,6 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
       }),
       description                          := s"Facade for $npmName version $npmVersion",
       useYarn                              := true,
-      sonatypeProfileName                  := "io.github.nafg",
       Compile / npmDependencies += npmName -> npmVersion,
       scalacOptions ++= (if (scalaJSVersion.startsWith("0.6.")) Seq("-P:scalajs:sjsDefinedByDefault") else Nil)
     )
