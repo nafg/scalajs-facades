@@ -31,7 +31,7 @@ lazy val simpleFacade =
   project
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
-      description         := "Library for react component facades that are simple to write and simple to use",
+      description := "Library for react component facades that are simple to write and simple to use",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.2",
         "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.2",
