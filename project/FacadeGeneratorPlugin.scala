@@ -62,7 +62,26 @@ object FacadeGeneratorPlugin extends AutoPlugin {
       autoImport.reactDocGenDir := cloneOrCheckoutGitRepo.value,
       autoImport.runYarnInstall := {
         val dir = autoImport.reactDocGenDir.value
+        val logger = streams.value.log
+        
+        // First try the cached yarn install
         FacadeGenerator.doCached[Unit](streams.value.cacheStoreFactory.make("yarn-install"), dir) {
+          os.proc("yarn", "install", "--mutex", "network", "--prefer-offline")
+            .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
+        }
+        
+        // Verify that react-docgen is available after yarn install
+        val reactDocGenAvailable = try {
+          os.proc("yarn", "react-docgen", "--help")
+            .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit, check = false)
+            .exitCode == 0
+        } catch {
+          case _: Exception => false
+        }
+        
+        // If react-docgen is not available, force a fresh yarn install without caching
+        if (!reactDocGenAvailable) {
+          logger.warn("react-docgen not available after cached yarn install, running fresh install...")
           os.proc("yarn", "install", "--mutex", "network", "--prefer-offline")
             .call(cwd = dir, stderr = os.Inherit, stdout = os.Inherit)
         }

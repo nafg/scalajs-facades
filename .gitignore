@@ -7,3 +7,4 @@ target/
 metals.sbt
 *.semanticdb
 /*/yarn.lock
+cs
