@@ -33,8 +33,8 @@ lazy val simpleFacade =
     .settings(
       description := "Library for react component facades that are simple to write and simple to use",
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.2",
-        "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.2",
+        "com.github.japgolly.scalajs-react" %%% "core"             % "2.1.3",
+        "com.github.japgolly.scalajs-react" %%% "extra"            % "2.1.3",
         "me.shadaj"                         %%% "slinky-readwrite" % "0.7.5",
         "org.scalameta"                     %%% "munit"            % "1.1.1" % Test
       )
