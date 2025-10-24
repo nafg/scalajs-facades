@@ -3,11 +3,8 @@ import _root_.io.github.nafg.scalacoptions.*
 
 def myScalacOptions(version: String) =
   ScalacOptions.all(version)(
-    (opts: options.Common) =>
-      opts.deprecation ++
-        opts.unchecked ++
-        opts.feature,
-    (_: options.V2).explaintypes,
+    (opts: options.Common) => opts.deprecation ++ opts.feature,
+    (opts: options.V2) => opts.explaintypes ++ opts.unchecked,
     (_: options.V2_13).Xlint("_"),
     (opts: options.V2_13_6_+) =>
       opts.WdeadCode ++
