@@ -18,7 +18,7 @@ inThisBuild(List(
   versionScheme                       := Some("early-semver"),
   githubWorkflowScalaVersions         := githubWorkflowScalaVersions.value.map(_.replaceFirst("\\d+$", "x")),
   githubWorkflowJobSetup +=
-    WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v4"), params = Map("node-version" -> "18")),
+    WorkflowStep.Use(UseRef.Public("actions", "setup-node", "v4"), params = Map("node-version" -> "20")),
   githubWorkflowTargetTags ++= Seq("v*"),
   githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v"))),
   githubWorkflowPublish               := Seq(
