@@ -115,7 +115,7 @@ scalajs-facades/
 ### Cross-compilation
 - Projects support both Scala 2.13.16 and Scala 3.3.7
 - Default is Scala 3.3.7
-- Use `sbt "++2.13.16" "project <projectName>" <command>` to test with Scala 2.13
+- Use `sbt "++2.13.x" "project <projectName>" <command>` to test with Scala 2.13
 - Cross-compilation takes slightly longer (~17 seconds vs 8 seconds for compile)
 
 ## Frequently Referenced Commands
