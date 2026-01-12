@@ -7,13 +7,13 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Prerequisites and Installation
-- Install SBT 1.11.1:
+- Install SBT 1.11.7:
   ```bash
-  curl -L "https://github.com/sbt/sbt/releases/download/v1.11.1/sbt-1.11.1.tgz" | tar xz -C /tmp/
+  curl -L "https://github.com/sbt/sbt/releases/download/v1.11.7/sbt-1.11.7.tgz" | tar xz -C /tmp/
   export PATH="/tmp/sbt/bin:$PATH"
   ```
 - Ensure Java 8+ is available (Java 17 works well)
-- Ensure Node.js 18+ and npm are available
+- Ensure Node.js 20+ and npm are available
 - Install yarn globally: `npm install -g yarn`
 
 ### Build and Test Commands
@@ -62,7 +62,7 @@ After making changes, validate with these scenarios:
    ```
 3. **Build configuration changes**: Test cross-compilation
    ```bash
-   sbt "++2.13.16" "project simpleFacade" compile
+   sbt "++2.13.18" "project simpleFacade" compile
    ```
 
 ## Project Structure
@@ -113,8 +113,8 @@ scalajs-facades/
 - **NEVER CANCEL builds or tests** - they include npm dependency downloads which can be slow
 
 ### Cross-compilation
-- Projects support both Scala 2.13.16 and Scala 3.3.6
-- Default is Scala 3.3.6
+- Projects support both Scala 2.13.16 and Scala 3.3.7
+- Default is Scala 3.3.7
 - Use `sbt "++2.13.16" "project <projectName>" <command>` to test with Scala 2.13
 - Cross-compilation takes slightly longer (~17 seconds vs 8 seconds for compile)
 
@@ -178,7 +178,7 @@ sbt "project reactSelect" test               # ~20-45 seconds
 sbt "project reactInputMask" test            # ~20-45 seconds
 
 # 5. Test cross-compilation if needed
-sbt "++2.13.16" "project simpleFacade" compile  # ~17 seconds
+sbt "++2.13.18" "project simpleFacade" compile  # ~17 seconds
 
 # Total time: ~3-4 minutes for full validation
 ```
