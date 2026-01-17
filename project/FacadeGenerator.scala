@@ -263,22 +263,21 @@ object FacadeGenerator {
 
     val readComponentNames = overriddenExisting.map(_.name).toSet
 
-    val addedComponentInfos =
-      (overrides.components -- readComponentNames).collect {
-        case (name, overrides) if name.headOption.exists(_.isLetter) =>
-          ComponentInfo(
-            name = name,
-            description = "",
-            propInfos = overrides.props.toSeq.map { case (propName, Overrides.PropInfoOverride(typ, required)) =>
-              PropInfo(
-                name = propName,
-                identifier = Identifier(propName),
-                `type` = typ.getOrElse(PropTypeInfo.jsAny),
-                required = required.getOrElse(false)
-              )
-            }
-          )
-      }
+    val addedComponentInfos = (overrides.components -- readComponentNames).collect {
+      case (name, overrides) if name.headOption.exists(_.isLetter) =>
+        ComponentInfo(
+          name = name,
+          description = "",
+          propInfos = overrides.props.toSeq.map { case (propName, Overrides.PropInfoOverride(typ, required)) =>
+            PropInfo(
+              name = propName,
+              identifier = Identifier(propName),
+              `type` = typ.getOrElse(PropTypeInfo.jsAny),
+              required = required.getOrElse(false)
+            )
+          }
+        )
+    }
 
     val componentInfos = overriddenExisting ++ addedComponentInfos
 
