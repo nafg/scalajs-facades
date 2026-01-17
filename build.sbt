@@ -41,10 +41,11 @@ def moduleConfig(npmName: String, npmVersion: String): Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .dependsOn(simpleFacade)
     .settings(
-      name                                 := npmName.stripPrefix("@") + "_" + (npmVersion match {
-        case VersionNumber(Seq(n, _, _), _, _) => n
-        case s                                 => s.takeWhile(_ != '.')
-      }),
+      name                                 := npmName.stripPrefix("@") + "_" +
+        (npmVersion match {
+          case VersionNumber(Seq(n, _, _), _, _) => n
+          case s                                 => s.takeWhile(_ != '.')
+        }),
       description                          := s"Facade for $npmName version $npmVersion",
       useYarn                              := true,
       Compile / npmDependencies += npmName -> npmVersion,
