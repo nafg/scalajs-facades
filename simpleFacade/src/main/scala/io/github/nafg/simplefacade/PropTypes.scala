@@ -18,10 +18,11 @@ object PropTypes {
   object Setting       {
     class Single(val key: String, val value: js.Any) extends Setting {
       override def toString                         = s"""$key: $value"""
-      override def applyToDict(dict: AnyDict): Unit = {
-        val existingValue: js.Any = if (dict.contains(key)) js.Any.wrapDictionary(dict)(key) else js.undefined
-        dict(key) = MergeProps.merge(key, existingValue, value)
-      }
+      override def applyToDict(dict: AnyDict): Unit =
+        if (dict.contains(key))
+          dict(key) = MergeProps.merge(key, js.Any.wrapDictionary(dict)(key), value)
+        else
+          dict(key) = value
     }
 
     implicit class FromBooleanProp[A](prop: Prop[A])(implicit ev: |.Evidence[Boolean, A])
