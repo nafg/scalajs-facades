@@ -143,6 +143,10 @@ MyComponent(defaults, _.className := "extra-style")
 #### Minimal facade (no children)
 
 ```scala
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSImport
+import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
+
 object ReactInputMask extends FacadeModule.Simple {
   @JSImport("react-input-mask", JSImport.Default)
   @js.native object raw extends js.Object
@@ -162,6 +166,13 @@ ReactInputMask(_.mask := "99/99/9999", _.alwaysShowMask)
 #### Facade with children
 
 ```scala
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSImport
+import japgolly.scalajs.react.vdom.VdomNode
+import japgolly.scalajs.react.vdom.html_<^._
+import io.github.nafg.simplefacade.{FacadeModule, PropTypes}
+import io.github.nafg.simplefacade.Implicits.vdomNodeWriter
+
 object MyCard extends FacadeModule.NodeChildren.Simple {
   @JSImport("my-card", JSImport.Default)
   @js.native object raw extends js.Object
@@ -188,6 +199,11 @@ val element: VdomElement = MyCard(_.title := "Empty card")
 For frequently-used props, you can add convenience overloads:
 
 ```scala
+import java.time.LocalDate
+import japgolly.scalajs.react.Callback
+import japgolly.scalajs.react.extra.StateSnapshot
+import io.github.nafg.simplefacade.{FacadeModule, Factory}
+
 object DatePicker extends FacadeModule {
   // ... raw, Props, mkProps as usual ...
 
@@ -206,6 +222,11 @@ object DatePicker extends FacadeModule {
 For components generic over a type (e.g., a select component):
 
 ```scala
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSImport
+import japgolly.scalajs.react.Callback
+import io.github.nafg.simplefacade.{FacadeModuleP, HasOpaqueReaderWriter, PropTypes}
+
 object Select extends FacadeModuleP {
   @JSImport("react-select", JSImport.Default)
   @js.native object raw extends js.Object
