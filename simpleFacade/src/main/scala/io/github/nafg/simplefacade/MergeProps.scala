@@ -3,7 +3,17 @@ package io.github.nafg.simplefacade
 import scala.scalajs.js
 
 
-// Based loosely on https://github.com/zhangkaiyulw/react-merge-props
+/** Intelligently merges duplicate prop values when the same key is set multiple times.
+  *
+  * Unlike React's default behavior (last value wins), MergeProps applies type-aware merging for known prop patterns:
+  *   - '''className''': concatenated with a space (e.g., `"btn" + " " + "btn-primary"`)
+  *   - '''style''': deep-merged via `Object.assign` (later properties override earlier ones)
+  *   - '''on*''' (event handlers): chained so both handlers fire in sequence
+  *   - '''children''' (arrays): concatenated
+  *   - All other props, or mismatched types: last value wins
+  *
+  * Based loosely on [[https://github.com/zhangkaiyulw/react-merge-props react-merge-props]].
+  */
 private[simplefacade] object MergeProps {
   private trait AnyJsFunction extends js.ThisFunction {
     def apply(_this: js.Any, args: js.Any*): js.Any

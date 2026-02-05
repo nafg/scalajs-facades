@@ -34,7 +34,9 @@ lazy val simpleFacade =
         "com.github.japgolly.scalajs-react" %%% "extra"            % "3.0.0",
         "me.shadaj"                         %%% "slinky-readwrite" % "0.7.5",
         "org.scalameta"                     %%% "munit"            % "1.2.2" % Test
-      )
+      ),
+      Compile / doc / scalacOptions ++=
+        (if (scalaBinaryVersion.value == "3") Seq("-comment-syntax:wiki") else Nil)
     )
 
 def moduleConfig(npmName: String, npmVersion: String): Project => Project =
