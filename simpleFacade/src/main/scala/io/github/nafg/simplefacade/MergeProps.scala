@@ -37,16 +37,17 @@ private[simplefacade] object MergeProps {
       value2
     else if (js.isUndefined(value2))
       value1
-    else if (js.typeOf(value1) != js.typeOf(value2))
-      value2
-    else if (js.typeOf(value2) == "array" && key == "children")
-      mergeChildrenArrays(value1, value2)
-    else if (js.typeOf(value2) == "string" && key == "className")
-      mergeClassNames(value1, value2)
-    else if (js.typeOf(value2) == "object" && key == "style")
-      mergeStyleObjects(value1, value2)
-    else if (js.typeOf(value2) == "function" && key.startsWith("on"))
-      mergeEventHandlers(value1, value2)
-    else
-      value2
+    else {
+      val tpe = js.typeOf(value2)
+      if (js.typeOf(value1) != tpe)
+        value2
+      else
+        (tpe, key) match {
+          case ("array", "children")                 => mergeChildrenArrays(value1, value2)
+          case ("string", "className")               => mergeClassNames(value1, value2)
+          case ("object", "style")                   => mergeStyleObjects(value1, value2)
+          case ("function", k) if k.startsWith("on") => mergeEventHandlers(value1, value2)
+          case _                                     => value2
+        }
+    }
 }
