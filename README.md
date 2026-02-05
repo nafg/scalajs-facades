@@ -69,7 +69,7 @@ object Badge extends FacadeModule.NodeChildren.Simple {
 
 // Usage — settings then children:
 Badge(_.badgeContent := "3", _.color := "secondary")(
-  Icon(_.className := "mail")
+  <.span("mail")
 )
 ```
 
