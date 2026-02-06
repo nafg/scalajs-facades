@@ -108,4 +108,36 @@ class Tests extends munit.FunSuite {
     val children = dict("children").asInstanceOf[js.Array[String]]
     assertEquals(children.toList, List("a", "b", "c"))
   }
+
+  test("TagMod element contributes children as array") {
+    val dict     = myFactory.apply(<.span("hello")).toDict
+    val children = dict("children").asInstanceOf[js.Array[js.Any]]
+    assertEquals(children.length, 1)
+  }
+
+  test("Two TagMod elements concatenate children arrays") {
+    val dict     = myFactory.apply(<.span("a"), <.span("b")).toDict
+    val children = dict("children").asInstanceOf[js.Array[js.Any]]
+    assertEquals(children.length, 2)
+  }
+
+  test("Direct children array + TagMod element concatenate") {
+    val dict     = myFactory
+      .apply(
+        _.children := js.Array[js.Any]("x"),
+        <.span("y")
+      )
+      .toDict
+    val children = dict("children").asInstanceOf[js.Array[js.Any]]
+    assertEquals(children.length, 2)
+  }
+
+  test("Factory chaining concatenates children arrays from TagMods") {
+    val dict     = myFactory
+      .apply(<.span("a"))
+      .apply(<.span("b"))
+      .toDict
+    val children = dict("children").asInstanceOf[js.Array[js.Any]]
+    assertEquals(children.length, 2)
+  }
 }
