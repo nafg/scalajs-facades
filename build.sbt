@@ -34,7 +34,8 @@ lazy val simpleFacade =
         "com.github.japgolly.scalajs-react" %%% "extra"            % "3.0.0",
         "me.shadaj"                         %%% "slinky-readwrite" % "0.7.5",
         "org.scalameta"                     %%% "munit"            % "1.2.2" % Test
-      )
+      ),
+      Test / npmDependencies ++= Seq("react" -> "18.3.1", "react-dom" -> "18.3.1")
     )
 
 def moduleConfig(npmName: String, npmVersion: String): Project => Project =
