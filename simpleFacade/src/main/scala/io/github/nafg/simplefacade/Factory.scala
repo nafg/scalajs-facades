@@ -9,8 +9,13 @@ import io.github.nafg.simplefacade.MergeProps.AnyDict
 
 
 object Factory {
+
+  /** Implicit conversion allowing a [[Factory]] to be used directly where a `VdomElement` is expected. */
   implicit def toVdomElement(builder: Factory[_]): VdomElement = builder.render.vdomElement
 
+  /** A setting is a function from the Props object to a [[PropTypes.Setting]]. This is why prop assignment uses the
+    * `_.propName := value` syntax — the `_` is the Props instance.
+    */
   type Setting[A] = A => PropTypes.Setting
 }
 
