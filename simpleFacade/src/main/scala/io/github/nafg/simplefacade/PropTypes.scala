@@ -56,6 +56,20 @@ object PropTypes {
     }
   }
 
+  // format: off
+  /** A typed prop definition. Created via `of[A]` in a [[PropTypes]] subclass.
+    *
+    *   - `:=` sets the prop to a value
+    *   - `:=?` sets the prop from an `Option`, passing `undefined` for `None`
+    *   - `setAs[B]` sets the prop using a different type's Writer
+    *   - `setRaw` sets the prop to a raw `js.Any` value, bypassing the Writer
+    *
+    * @example {{{_.color := "red"}}}
+    * @example {{{_.color :=? Some("red")}}}
+    * @example {{{_.value.setAs[String]("42")}}}
+    * @example {{{_.value.setRaw(js.Dynamic.literal(x = 1))}}}
+    */
+  // format: on
   class Prop[A](val name: String)(implicit writer: Writer[A]) {
     def :=(value: A): Setting          = new Setting.Single(name, writer.write(value))
     def :=?(value: Option[A]): Setting = new Setting.Single(name, value.map(writer.write).getOrElse(js.undefined))
@@ -70,12 +84,19 @@ object PropTypes {
 }
 
 trait PropTypes {
+
+  /** Set props not defined in this Props class.
+    * @example
+    *   {{{_.dyn.`aria-label`("Close")}}}
+    */
   object dyn extends Dynamic {
     def applyDynamic[A](name: String)(value: A)(implicit writer: Writer[A]): PropTypes.Setting =
       new PropTypes.Setting.Single(name, writer.write(value))
   }
 
+  /** Define a typed prop. The prop name is derived automatically from the `val` name via `sourcecode.Name`. */
   def of[A: Writer](implicit name: sourcecode.Name) = new PropTypes.Prop[A](name.value)
 
+  /** The React `key` prop. */
   val key = of[Key]
 }

@@ -35,7 +35,9 @@ lazy val simpleFacade =
         "me.shadaj"                         %%% "slinky-readwrite" % "0.7.5",
         "org.scalameta"                     %%% "munit"            % "1.2.2" % Test
       ),
-      Test / npmDependencies ++= Seq("react" -> "18.3.1", "react-dom" -> "18.3.1")
+      Test / npmDependencies ++= Seq("react" -> "18.3.1", "react-dom" -> "18.3.1"),
+      Compile / doc / scalacOptions ++=
+        (if (scalaBinaryVersion.value == "3") Seq("-comment-syntax:wiki") else Nil)
     )
 
 def moduleConfig(npmName: String, npmVersion: String): Project => Project =
