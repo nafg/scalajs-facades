@@ -42,7 +42,7 @@ private[simplefacade] object MergeProps {
       value1.asInstanceOf[js.Function].call(_this, args: _*)
       value2.asInstanceOf[js.Function].call(_this, args: _*)
   }
-  private def propType(value: js.Any): String = {
+  private def propType(value: js.Any): String                                   = {
     val tpe = js.typeOf(value)
     if (tpe == "object" && js.Array.isArray(value)) "array"
     else tpe
