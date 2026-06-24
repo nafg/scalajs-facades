@@ -17,7 +17,7 @@ def myScalacOptions(version: String) =
 
 inThisBuild(List(
   organization       := "io.github.nafg.scalajs-facades",
-  crossScalaVersions := Seq("2.13.18", "3.3.8"),
+  crossScalaVersions := Seq("2.13.18", "3.8.4"),
   scalaVersion       := (ThisBuild / crossScalaVersions).value.last,
   scalacOptions ++= myScalacOptions(scalaVersion.value)
 ))
