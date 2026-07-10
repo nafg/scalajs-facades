@@ -28,13 +28,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Java (zulu@8)
         if: matrix.java == 'zulu@8'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: 8
@@ -48,16 +48,16 @@ jobs:
           node-version: 20
 
       - name: Check that workflows are up to date
-        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
+        run: sbt '++ ${{ matrix.scala }}; githubWorkflowCheck'
 
       - name: Build project
-        run: sbt '++ ${{ matrix.scala }}' test
+        run: sbt '++ ${{ matrix.scala }}; test'
 
       - name: Compress target directories
         run: tar cf targets.tar reactInputMask/target reactAutocomplete/target simpleFacade/target reactPhoneNumberInput/target reactWidgets/target materialUiLab/target target reactSelect/target reactDatepicker/target materialUiCore/target reactWaypoint/target materialUiBase/target project/target
 
       - name: Upload target directories
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
           path: targets.tar
@@ -74,13 +74,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Java (zulu@8)
         if: matrix.java == 'zulu@8'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: 8
@@ -94,7 +94,7 @@ jobs:
           node-version: 20
 
       - name: Download target directories (2.13.x)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: target-${{ matrix.os }}-2.13.x-${{ matrix.java }}
 
@@ -104,7 +104,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (3.3.x)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: target-${{ matrix.os }}-3.3.x-${{ matrix.java }}
 
