@@ -54,7 +54,7 @@ jobs:
         run: sbt '++ ${{ matrix.scala }}; test'
 
       - name: Compress target directories
-        run: tar cf targets.tar reactInputMask/target reactAutocomplete/target simpleFacade/target reactPhoneNumberInput/target reactWidgets/target materialUiLab/target target reactSelect/target reactDatepicker/target materialUiCore/target reactWaypoint/target materialUiBase/target project/target
+        run: tar chf targets.tar reactInputMask/target reactAutocomplete/target simpleFacade/target reactPhoneNumberInput/target reactWidgets/target materialUiLab/target target reactSelect/target reactDatepicker/target materialUiCore/target reactWaypoint/target materialUiBase/target project/target
 
       - name: Upload target directories
         uses: actions/upload-artifact@v7
